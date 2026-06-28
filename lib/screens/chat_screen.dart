@@ -1,98 +1,145 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../constants/app_colors.dart';
 import '../models/message_model.dart';
 import '../services/api_service.dart';
-import '../widgets/chat_input.dart';
-import '../widgets/message_bubble.dart';
-import '../widgets/typing_indicator.dart';
+import '../widgets/quiz_flow.dart';
 
 class ChatScreen extends StatefulWidget {
-  final String initialMessage;
-
-  const ChatScreen({super.key, this.initialMessage = ''});
+  const ChatScreen({super.key});
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  final TextEditingController controller = TextEditingController();
-  final ScrollController _scrollController = ScrollController();
-  final List<MessageModel> messages = [];
-  bool isLoading = false;
+  final _controller = TextEditingController();
+  final _scroll = ScrollController();
+  final List<_ChatItem> _items = [];
+  bool _loading = false;
+  bool _hasText = false;
+  String? _pdfContext;
+  String? _pdfName;
 
   @override
   void initState() {
     super.initState();
-    if (widget.initialMessage.isNotEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _send(widget.initialMessage);
-      });
-    }
+    _controller.addListener(() {
+      final h = _controller.text.trim().isNotEmpty;
+      if (h != _hasText) setState(() => _hasText = h);
+    });
   }
 
-  void _scrollToBottom() {
+  @override
+  void dispose() {
+    _controller.dispose();
+    _scroll.dispose();
+    super.dispose();
+  }
+
+  void _scrollDown() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
+      if (_scroll.hasClients) {
+        _scroll.animateTo(
+          _scroll.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 280),
           curve: Curves.easeOut,
         );
       }
     });
   }
 
-  Future<void> _send(String text) async {
-    if (text.trim().isEmpty) return;
-
-    setState(() {
-      messages.add(MessageModel(text: text.trim(), isUser: true));
-      isLoading = true;
-    });
-    controller.clear();
-    _scrollToBottom();
-
-    try {
-      final response = await ApiService.sendMessage(text.trim());
-      setState(() {
-        messages.add(MessageModel(text: response, isUser: false));
-        isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        messages.add(MessageModel(
-            text: "Something went wrong. Please try again.", isUser: false));
-        isLoading = false;
-      });
-    }
-    _scrollToBottom();
+  bool _isQuizRequest(String text) {
+    final lower = text.toLowerCase();
+    return lower.contains('quiz') ||
+        lower.contains('test me') ||
+        lower.contains('mcq') ||
+        lower.contains('question');
   }
 
-  Future<void> sendMessage() async {
-    await _send(controller.text);
+  String _extractTopic(String text) {
+    final lower = text.toLowerCase();
+    for (final kw in ['quiz on', 'quiz about', 'test me on', 'mcq on', 'questions on', 'questions about']) {
+      if (lower.contains(kw)) {
+        final idx = lower.indexOf(kw) + kw.length;
+        return text.substring(idx).trim();
+      }
+    }
+    return text.replaceAll(RegExp(r'(?i)generate|quiz|test me|mcq|questions?'), '').trim();
+  }
+
+  Future<void> _send(String text) async {
+    if (text.trim().isEmpty) return;
+    final msg = text.trim();
+    _controller.clear();
+
+    setState(() {
+      _items.add(_ChatItem.message(MessageModel(text: msg, isUser: true)));
+      _loading = true;
+    });
+    _scrollDown();
+
+    // Detect quiz intent
+    if (_isQuizRequest(msg)) {
+      final topic = _extractTopic(msg).isNotEmpty ? _extractTopic(msg) : 'General Knowledge';
+      setState(() {
+        _loading = false;
+        _items.add(_ChatItem.aiMessage('Sure! Generating a quiz on **$topic**...'));
+        _items.add(_ChatItem.quiz(topic, _pdfContext));
+      });
+      _scrollDown();
+      return;
+    }
+
+    try {
+      final reply = await ApiService.chat(msg, pdfContext: _pdfContext);
+      setState(() {
+        _loading = false;
+        _items.add(_ChatItem.message(MessageModel(text: reply, isUser: false)));
+      });
+    } catch (_) {
+      setState(() {
+        _loading = false;
+        _items.add(_ChatItem.message(
+            MessageModel(text: 'Something went wrong. Please try again.', isUser: false)));
+      });
+    }
+    _scrollDown();
+  }
+
+  void _simulatePdfUpload() {
+    // Simulated — replace with file_picker in real app
+    setState(() {
+      _pdfName = 'DSA_Notes.pdf';
+      _pdfContext = 'This document covers Data Structures and Algorithms including Arrays, Linked Lists, Trees, Graphs, Sorting and Searching algorithms.';
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(children: [
+          const Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 16),
+          const SizedBox(width: 8),
+          Text('$_pdfName uploaded — AI will use this context'),
+        ]),
+        backgroundColor: AppColors.surface,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.bg,
       appBar: _buildAppBar(),
       body: Column(
         children: [
+          if (_pdfName != null) _pdfBanner(),
           Expanded(
-            child: messages.isEmpty
-                ? _buildEmptyState()
-                : ListView.builder(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    itemCount: messages.length,
-                    itemBuilder: (context, index) =>
-                        MessageBubble(message: messages[index]),
-                  ),
+            child: _items.isEmpty ? _emptyState() : _buildList(),
           ),
-          if (isLoading) const TypingIndicator(),
-          ChatInput(controller: controller, onSend: sendMessage),
+          if (_loading) _typingIndicator(),
+          _inputBar(),
         ],
       ),
     );
@@ -100,61 +147,23 @@ class _ChatScreenState extends State<ChatScreen> {
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      backgroundColor: AppColors.surface,
-      elevation: 0,
-      leading: IconButton(
-        onPressed: () => Navigator.pop(context),
-        icon: const Icon(Icons.arrow_back_ios_new_rounded,
-            color: AppColors.textSecondary, size: 18),
-      ),
+      automaticallyImplyLeading: false,
       title: Row(
         children: [
           Container(
-            width: 34,
-            height: 34,
+            width: 32,
+            height: 32,
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [AppColors.primary, AppColors.secondary],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(10),
+              color: AppColors.primaryDim,
+              borderRadius: BorderRadius.circular(9),
+              border: Border.all(color: AppColors.primaryBorder.withOpacity(0.3)),
             ),
-            child: const Icon(Icons.smart_toy_rounded,
-                color: Colors.white, size: 18),
+            child: const Icon(Icons.auto_awesome_rounded, color: AppColors.primary, size: 16),
           ),
           const SizedBox(width: 10),
-          const Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Study AI',
-                style: TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  height: 1.2,
-                ),
-              ),
-              Text(
-                'Online · Ready to teach',
-                style: TextStyle(
-                  color: AppColors.primary,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
+          const Text('Chat', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
         ],
       ),
-      actions: [
-        IconButton(
-          onPressed: () {},
-          icon: const Icon(Icons.more_vert_rounded,
-              color: AppColors.textSecondary),
-        ),
-      ],
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(1),
         child: Container(height: 1, color: AppColors.border),
@@ -162,90 +171,284 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _buildEmptyState() {
-    final suggestions = [
-      'Explain Linked Lists',
-      'What is Big O notation?',
-      'Quiz me on Arrays',
-      'Create a study plan',
-    ];
+  Widget _pdfBanner() {
+    return Container(
+      color: AppColors.primaryDim,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      child: Row(
+        children: [
+          const Icon(Icons.picture_as_pdf_rounded, color: AppColors.primary, size: 16),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              '$_pdfName — AI will answer from this PDF',
+              style: const TextStyle(color: AppColors.primary, fontSize: 12, fontWeight: FontWeight.w500),
+            ),
+          ),
+          GestureDetector(
+            onTap: () => setState(() { _pdfName = null; _pdfContext = null; }),
+            child: const Icon(Icons.close_rounded, color: AppColors.primary, size: 16),
+          ),
+        ],
+      ),
+    );
+  }
 
+  Widget _emptyState() {
+    final suggestions = [
+      'Explain Binary Trees',
+      'Generate a quiz on Arrays',
+      'What is dynamic programming?',
+      'Difference between stack and queue',
+    ];
     return Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
+        padding: const EdgeInsets.symmetric(horizontal: 32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 68,
-              height: 68,
+              width: 60,
+              height: 60,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [AppColors.primary, AppColors.secondary],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withOpacity(0.3),
-                    blurRadius: 20,
-                    spreadRadius: 2,
-                  ),
-                ],
+                color: AppColors.primaryDim,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: AppColors.primaryBorder.withOpacity(0.3)),
               ),
-              child: const Icon(Icons.auto_awesome_rounded,
-                  color: Colors.white, size: 30),
+              child: const Icon(Icons.auto_awesome_rounded, color: AppColors.primary, size: 28),
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 16),
             const Text(
-              'What do you want\nto learn today?',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 22,
-                fontWeight: FontWeight.w700,
-                height: 1.3,
-                letterSpacing: -0.3,
-              ),
+              'Ask anything',
+              style: TextStyle(color: AppColors.textPrimary, fontSize: 20, fontWeight: FontWeight.w700, letterSpacing: -0.3),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             const Text(
-              'Ask me anything or pick a suggestion below.',
+              'Or say "generate a quiz on X" to start a quiz right here.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: AppColors.textMuted, fontSize: 14),
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 13, height: 1.5),
             ),
-            const SizedBox(height: 28),
+            const SizedBox(height: 24),
             Wrap(
-              spacing: 10,
-              runSpacing: 10,
+              spacing: 8,
+              runSpacing: 8,
               alignment: WrapAlignment.center,
-              children: suggestions
-                  .map((s) => GestureDetector(
-                        onTap: () => _send(s),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 10),
-                          decoration: BoxDecoration(
-                            color: AppColors.surfaceElevated,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: AppColors.border),
-                          ),
-                          child: Text(
-                            s,
-                            style: const TextStyle(
-                              color: AppColors.textSecondary,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ))
-                  .toList(),
+              children: suggestions.map((s) => GestureDetector(
+                onTap: () => _send(s),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: Text(s, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13, fontWeight: FontWeight.w500)),
+                ),
+              )).toList(),
             ),
           ],
         ),
       ),
     );
   }
+
+  Widget _buildList() {
+    return ListView.builder(
+      controller: _scroll,
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      itemCount: _items.length,
+      itemBuilder: (_, i) {
+        final item = _items[i];
+        if (item.type == _ChatItemType.quiz) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: QuizFlowWidget(topic: item.quizTopic!, pdfContext: item.pdfContext),
+          );
+        }
+        return _Bubble(msg: item.message!);
+      },
+    );
+  }
+
+  Widget _typingIndicator() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 64, 8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(16), topRight: Radius.circular(16),
+            bottomRight: Radius.circular(16), bottomLeft: Radius.circular(4),
+          ),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 16, height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+            ),
+            SizedBox(width: 10),
+            Text('Thinking...', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _inputBar() {
+    return Container(
+      color: AppColors.surface,
+      padding: EdgeInsets.only(
+        left: 12, right: 12, top: 10,
+        bottom: MediaQuery.of(context).padding.bottom + 10,
+      ),
+      child: Row(
+        children: [
+          IconButton(
+            onPressed: _simulatePdfUpload,
+            icon: Icon(
+              Icons.attach_file_rounded,
+              color: _pdfName != null ? AppColors.primary : AppColors.textMuted,
+              size: 22,
+            ),
+            tooltip: 'Upload PDF',
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+          ),
+          Expanded(
+            child: TextField(
+              controller: _controller,
+              minLines: 1,
+              maxLines: 5,
+              style: const TextStyle(color: AppColors.textPrimary, fontSize: 15),
+              decoration: InputDecoration(
+                hintText: 'Ask anything...',
+                hintStyle: const TextStyle(color: AppColors.textMuted),
+                filled: true,
+                fillColor: AppColors.card,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.border)),
+                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.border)),
+                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.primary, width: 1.5)),
+              ),
+              onSubmitted: (_) => _send(_controller.text),
+            ),
+          ),
+          const SizedBox(width: 8),
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: _hasText ? AppColors.primary : AppColors.card,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: _hasText ? AppColors.primary : AppColors.border),
+            ),
+            child: IconButton(
+              onPressed: _hasText ? () => _send(_controller.text) : null,
+              icon: Icon(Icons.arrow_upward_rounded,
+                  color: _hasText ? Colors.white : AppColors.textMuted, size: 18),
+              padding: EdgeInsets.zero,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Chat item types ────────────────────────────────────────────────────────
+
+enum _ChatItemType { message, quiz }
+
+class _ChatItem {
+  final _ChatItemType type;
+  final MessageModel? message;
+  final String? quizTopic;
+  final String? pdfContext;
+
+  _ChatItem._({required this.type, this.message, this.quizTopic, this.pdfContext});
+
+  factory _ChatItem.message(MessageModel m) => _ChatItem._(type: _ChatItemType.message, message: m);
+  factory _ChatItem.aiMessage(String text) =>
+      _ChatItem._(type: _ChatItemType.message, message: MessageModel(text: text, isUser: false));
+  factory _ChatItem.quiz(String topic, String? ctx) =>
+      _ChatItem._(type: _ChatItemType.quiz, quizTopic: topic, pdfContext: ctx);
+}
+
+// ── Bubble ─────────────────────────────────────────────────────────────────
+
+class _Bubble extends StatelessWidget {
+  final MessageModel msg;
+  const _Bubble({required this.msg});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(msg.isUser ? 56 : 16, 4, msg.isUser ? 16 : 56, 4),
+      child: Column(
+        crossAxisAlignment: msg.isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        children: [
+          if (!msg.isUser)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 5),
+              child: Row(children: [
+                Container(
+                  width: 20, height: 20,
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryDim,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: AppColors.primaryBorder.withOpacity(0.3)),
+                  ),
+                  child: const Icon(Icons.auto_awesome_rounded, color: AppColors.primary, size: 11),
+                ),
+                const SizedBox(width: 6),
+                const Text('Study AI', style: TextStyle(color: AppColors.textMuted, fontSize: 11, fontWeight: FontWeight.w600)),
+              ]),
+            ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: msg.isUser ? AppColors.primaryDim : AppColors.surface,
+              borderRadius: BorderRadius.only(
+                topLeft: const Radius.circular(16),
+                topRight: const Radius.circular(16),
+                bottomLeft: Radius.circular(msg.isUser ? 16 : 4),
+                bottomRight: Radius.circular(msg.isUser ? 4 : 16),
+              ),
+              border: Border.all(
+                color: msg.isUser ? AppColors.primaryBorder.withOpacity(0.3) : AppColors.border,
+              ),
+            ),
+            child: Text(msg.text, style: const TextStyle(color: AppColors.textPrimary, fontSize: 15, height: 1.55)),
+          ),
+          if (!msg.isUser)
+            Padding(
+              padding: const EdgeInsets.only(top: 5),
+              child: Row(children: [
+                _chip(Icons.copy_rounded, 'Copy', () => Clipboard.setData(ClipboardData(text: msg.text))),
+                const SizedBox(width: 6),
+                _chip(Icons.thumb_up_outlined, 'Helpful', () {}),
+              ]),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _chip(IconData icon, String label, VoidCallback onTap) => GestureDetector(
+    onTap: onTap,
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(color: AppColors.card, borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.border)),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        Icon(icon, color: AppColors.textMuted, size: 12),
+        const SizedBox(width: 4),
+        Text(label, style: const TextStyle(color: AppColors.textMuted, fontSize: 11, fontWeight: FontWeight.w500)),
+      ]),
+    ),
+  );
 }
