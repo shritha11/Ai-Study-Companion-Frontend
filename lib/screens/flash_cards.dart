@@ -5,7 +5,8 @@ import '../models/message_model.dart';
 import '../services/api_service.dart';
 
 class FlashcardsScreen extends StatefulWidget {
-  const FlashcardsScreen({super.key});
+ final String? initialTopic;
+  const FlashcardsScreen({super.key, this.initialTopic});
 
   @override
   State<FlashcardsScreen> createState() => _FlashcardsScreenState();
@@ -24,6 +25,12 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
   @override
   void initState() {
     super.initState();
+    if(widget.initialTopic != null){
+    _controller.text = widget.initialTopic!;
+     WidgetsBinding.instance.addPostFrameCallback((_) {
+    _generate(widget.initialTopic!);
+  });
+}
     _controller.addListener(() {
       final h = _controller.text.trim().isNotEmpty;
       if (h != _hasText) setState(() => _hasText = h);

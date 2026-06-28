@@ -1,20 +1,45 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static const bg            = Color(0xFF0D1117);
-  static const surface       = Color(0xFF161B22);
-  static const card          = Color(0xFF1C2128);
-  static const border        = Color(0xFF30363D);
+  // ===== New Design System =====
 
-  static const primary       = Color(0xFF3FB950);   // green
-  static const primaryDim    = Color(0xFF1A3A2A);
-  static const primaryBorder = Color(0xFF2EA043);
+  static const background = Color(0xFF09090B);
+  static const surface = Color(0xFF18181B);
+  static const card = Color(0xFF27272A);
 
-  static const amber         = Color(0xFFE3B341);
-  static const red           = Color(0xFFF85149);
-  static const blue          = Color(0xFF58A6FF);
+  static const border = Color(0xFF3F3F46);
 
-  static const textPrimary   = Color(0xFFE6EDF3);
-  static const textSecondary = Color(0xFF8B949E);
-  static const textMuted     = Color(0xFF484F58);
+  static const primary = Color(0xFF7C3AED);
+  static const secondary = Color(0xFFA855F7);
+
+  static const success = Color(0xFF22C55E);
+  static const warning = Color(0xFFF59E0B);
+  static const error = Color(0xFFEF4444);
+
+  static const textPrimary = Colors.white;
+  static const textSecondary = Color(0xFFA1A1AA);
+  static const textMuted = Color(0xFF71717A);
+
+  static const glass = Color.fromARGB(25, 255, 255, 255);
+
+  // ===== Compatibility =====
+  // (Don't break the existing screens)
+
+  static const bg = background;
+
+  static const primaryDim = Color(0xFF2E1065);
+
+  static const primaryBorder = Color(0xFF8B5CF6);
+
+  static const amber = warning;
+
+  static const blue = Color(0xFF3B82F6);
+
+  static const red = error;
+
+  static const surfaceElevated = Color(0xFF232329);
+
+  static const userBubble = Color(0xFF7C3AED);
+
+  static const userBubbleBorder = Color(0xFFA855F7);
 }

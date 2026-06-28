@@ -4,15 +4,17 @@ import '../constants/app_colors.dart';
 import '../models/message_model.dart';
 import '../services/api_service.dart';
 import '../widgets/quiz_flow.dart';
+import 'quiz_screen.dart';
+import 'flash_cards.dart';
 
-class ChatScreen extends StatefulWidget {
-  const ChatScreen({super.key});
+class StudyScreen extends StatefulWidget {
+  const StudyScreen({super.key});
 
   @override
-  State<ChatScreen> createState() => _ChatScreenState();
+  State<StudyScreen> createState() => _StudyScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _StudyScreenState extends State<StudyScreen> {
   final _controller = TextEditingController();
   final _scroll = ScrollController();
   final List<_ChatItem> _items = [];
@@ -20,6 +22,41 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _hasText = false;
   String? _pdfContext;
   String? _pdfName;
+
+  Widget suggestionChip(String text) {
+
+  return Container(
+
+    padding: const EdgeInsets.symmetric(
+      horizontal: 18,
+      vertical: 12,
+    ),
+
+    decoration: BoxDecoration(
+
+      color: AppColors.card,
+
+      borderRadius: BorderRadius.circular(30),
+
+      border: Border.all(
+        color: AppColors.border,
+      ),
+
+    ),
+
+    child: Text(
+
+      text,
+
+      style: const TextStyle(
+        fontWeight: FontWeight.w500,
+      ),
+
+    ),
+
+  );
+
+}
 
   @override
   void initState() {
@@ -202,54 +239,70 @@ class _ChatScreenState extends State<ChatScreen> {
       'Difference between stack and queue',
     ];
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                color: AppColors.primaryDim,
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: AppColors.primaryBorder.withOpacity(0.3)),
-              ),
-              child: const Icon(Icons.auto_awesome_rounded, color: AppColors.primary, size: 28),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Ask anything',
-              style: TextStyle(color: AppColors.textPrimary, fontSize: 20, fontWeight: FontWeight.w700, letterSpacing: -0.3),
-            ),
-            const SizedBox(height: 6),
-            const Text(
-              'Or say "generate a quiz on X" to start a quiz right here.',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 13, height: 1.5),
-            ),
-            const SizedBox(height: 24),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              alignment: WrapAlignment.center,
-              children: suggestions.map((s) => GestureDetector(
-                onTap: () => _send(s),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: AppColors.border),
-                  ),
-                  child: Text(s, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13, fontWeight: FontWeight.w500)),
-                ),
-              )).toList(),
-            ),
-          ],
+  child: Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 28),
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+
+        Container(
+          width: 80,
+          height: 80,
+          decoration: BoxDecoration(
+            color: AppColors.card,
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: const Icon(
+            Icons.auto_awesome_rounded,
+            size: 36,
+          ),
         ),
-      ),
-    );
+
+        const SizedBox(height: 30),
+
+        const Text(
+          "What would you like to learn today?",
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+
+        const SizedBox(height: 10),
+
+        const Text(
+          "Ask a question, upload notes, or let Lumina create quizzes and flashcards.",
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: AppColors.textSecondary,
+            height: 1.6,
+          ),
+        ),
+
+        const SizedBox(height: 36),
+
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: [
+
+            suggestionChip("Data Structures"),
+
+            suggestionChip("Flutter"),
+
+            suggestionChip("DBMS"),
+
+            suggestionChip("Operating Systems"),
+
+            suggestionChip("AI"),
+
+          ],
+        )
+      ],
+    ),
+  ),
+);
   }
 
   Widget _buildList() {
@@ -427,13 +480,74 @@ class _Bubble extends StatelessWidget {
           ),
           if (!msg.isUser)
             Padding(
-              padding: const EdgeInsets.only(top: 5),
-              child: Row(children: [
-                _chip(Icons.copy_rounded, 'Copy', () => Clipboard.setData(ClipboardData(text: msg.text))),
-                const SizedBox(width: 6),
-                _chip(Icons.thumb_up_outlined, 'Helpful', () {}),
-              ]),
+  padding: const EdgeInsets.only(top: 8),
+  child: Wrap(
+    spacing: 8,
+    runSpacing: 8,
+    children: [
+
+      _chip(
+        Icons.copy_rounded,
+        "Copy",
+        () {
+          Clipboard.setData(
+            ClipboardData(text: msg.text),
+          );
+        },
+      ),
+
+      _chip(
+        Icons.quiz_outlined,
+        "Quiz Me",
+        () {
+
+          Navigator.push(
+
+            context,
+
+            MaterialPageRoute(
+
+              builder: (_) => QuizScreen(
+    initialTopic: "Binary Trees",
+)
+
             ),
+
+          );
+
+        },
+      ),
+
+      _chip(
+        Icons.style_outlined,
+        "Flashcards",
+        () {
+
+          Navigator.push(
+
+            context,
+
+            MaterialPageRoute(
+
+              builder: (_) => const FlashcardsScreen(),
+
+            ),
+
+          );
+
+        },
+      ),
+
+      _chip(
+        Icons.bookmark_border_rounded,
+        "Save",
+        () {},
+
+      ),
+
+    ],
+  ),
+),
         ],
       ),
     );

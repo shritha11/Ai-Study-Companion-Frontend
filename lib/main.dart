@@ -1,86 +1,92 @@
 import 'package:flutter/material.dart';
+
 import 'constants/app_colors.dart';
 import 'screens/home_screen.dart';
-import 'screens/chat_screen.dart';
-import 'screens/quiz_screen.dart';
-import 'screens/flash_cards.dart';
+import 'screens/library_screen.dart';
+import 'screens/profile_screen.dart';
+import 'screens/study_screen.dart';
 import 'theme/app_theme.dart';
+import 'widgets/lumina_bottom_nav.dart';
 
-void main() => runApp(const MyApp());
+void main() {
+  runApp(const LuminaApp());
+}
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class LuminaApp extends StatelessWidget {
+  const LuminaApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      title: "Lumina",
       theme: AppTheme.dark,
-      home: const RootNav(),
+      home: const RootScreen(),
     );
   }
 }
 
-class RootNav extends StatefulWidget {
-  const RootNav({super.key});
+class RootScreen extends StatefulWidget {
+  const RootScreen({super.key});
 
   @override
-  State<RootNav> createState() => _RootNavState();
+  State<RootScreen> createState() => _RootScreenState();
 }
 
-class _RootNavState extends State<RootNav> {
-  int _tab = 0;
+class _RootScreenState extends State<RootScreen> {
 
-  void switchTab(int index) => setState(() => _tab = index);
+  int currentIndex = 0;
 
-  static const _screens = [
+  final List<Widget> screens = const [
+
     HomeScreen(),
-    ChatScreen(),
-    QuizScreen(),
-    FlashcardsScreen(),
+
+    StudyScreen(),
+
+    LibraryScreen(),
+
+    ProfileScreen(),
+
   ];
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
-      body: IndexedStack(index: _tab, children: _screens),
-      bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          border: Border(top: BorderSide(color: AppColors.border)),
+
+      body: AnimatedSwitcher(
+
+        duration: const Duration(milliseconds: 300),
+
+        child: IndexedStack(
+
+          key: ValueKey(currentIndex),
+
+          index: currentIndex,
+
+          children: screens,
+
         ),
-        child: BottomNavigationBar(
-          currentIndex: _tab,
-          onTap: (i) => setState(() => _tab = i),
-          backgroundColor: AppColors.surface,
-          selectedItemColor: AppColors.primary,
-          unselectedItemColor: AppColors.textMuted,
-          type: BottomNavigationBarType.fixed,
-          selectedFontSize: 10,
-          unselectedFontSize: 10,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined),
-              activeIcon: Icon(Icons.home_rounded),
-              label: 'Home',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.chat_bubble_outline_rounded),
-              activeIcon: Icon(Icons.chat_bubble_rounded),
-              label: 'Chat',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.quiz_outlined),
-              activeIcon: Icon(Icons.quiz_rounded),
-              label: 'Quiz',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.style_outlined),
-              activeIcon: Icon(Icons.style_rounded),
-              label: 'Flashcards',
-            ),
-          ],
-        ),
+
       ),
+
+      bottomNavigationBar: LuminaBottomNav(
+
+        currentIndex: currentIndex,
+
+        onTap: (index){
+
+          setState(() {
+
+            currentIndex = index;
+
+          });
+
+        },
+
+      ),
+
     );
+
   }
 }

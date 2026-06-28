@@ -3,7 +3,9 @@ import '../constants/app_colors.dart';
 import '../widgets/quiz_flow.dart';
 
 class QuizScreen extends StatefulWidget {
-  const QuizScreen({super.key});
+  final String? initialTopic;
+
+  const QuizScreen({super.key, this.initialTopic});
 
   @override
   State<QuizScreen> createState() => _QuizScreenState();
@@ -26,6 +28,11 @@ class _QuizScreenState extends State<QuizScreen> {
   @override
   void initState() {
     super.initState();
+    if(widget.initialTopic != null){
+    _controller.text = widget.initialTopic!;
+    _startQuiz(widget.initialTopic!);
+
+  }
     _controller.addListener(() {
       final h = _controller.text.trim().isNotEmpty;
       if (h != _hasText) setState(() => _hasText = h);

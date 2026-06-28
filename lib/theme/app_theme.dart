@@ -1,37 +1,46 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
+
 import '../constants/app_colors.dart';
 
 class AppTheme {
-  static ThemeData get dark => ThemeData(
+  static ThemeData dark = ThemeData(
     brightness: Brightness.dark,
-    scaffoldBackgroundColor: AppColors.bg,
+
+    useMaterial3: true,
+
+    scaffoldBackgroundColor: AppColors.background,
+
+    textTheme: GoogleFonts.plusJakartaSansTextTheme(),
+
     colorScheme: const ColorScheme.dark(
       primary: AppColors.primary,
+      secondary: AppColors.secondary,
       surface: AppColors.surface,
     ),
-    fontFamily: 'Inter',
-    appBarTheme: const AppBarTheme(
-      backgroundColor: AppColors.bg,
+
+    appBarTheme: AppBarTheme(
       elevation: 0,
-      systemOverlayStyle: SystemUiOverlayStyle.light,
-      iconTheme: IconThemeData(color: AppColors.textSecondary),
-      titleTextStyle: TextStyle(
-        color: AppColors.textPrimary,
-        fontSize: 17,
-        fontWeight: FontWeight.w600,
-        fontFamily: 'Inter',
+      centerTitle: false,
+      backgroundColor: Colors.transparent,
+
+      titleTextStyle: GoogleFonts.plusJakartaSans(
+        color: Colors.white,
+        fontWeight: FontWeight.w700,
+        fontSize: 22,
+      ),
+
+      iconTheme: const IconThemeData(
+        color: Colors.white,
       ),
     ),
-    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-      backgroundColor: AppColors.surface,
-      selectedItemColor: AppColors.primary,
-      unselectedItemColor: AppColors.textMuted,
-      type: BottomNavigationBarType.fixed,
-      showUnselectedLabels: true,
-      selectedLabelStyle: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, fontFamily: 'Inter'),
-      unselectedLabelStyle: TextStyle(fontSize: 10, fontFamily: 'Inter'),
+
+    cardTheme: CardThemeData(
+      color: AppColors.card,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(24),
+      ),
     ),
-    dividerColor: AppColors.border,
   );
 }

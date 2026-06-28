@@ -23,12 +23,74 @@ class MessageBubble extends StatelessWidget {
         children: [
           if (!message.isUser) _buildAIHeader(),
           if (!message.isUser) const SizedBox(height: 6),
-          _buildBubble(context),
+          if (!message.isUser) ...[
+             const SizedBox(height: 14),
+             const Divider(height: 1),
+             const SizedBox(height: 12),
+             _buildLearningActions(context),
+          ],
           if (!message.isUser) _buildActions(context),
         ],
       ),
     );
   }
+
+  Widget _buildLearningActions(BuildContext context) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+
+      const Text(
+        "Continue Learning",
+        style: TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w700,
+          color: AppColors.textSecondary,
+        ),
+      ),
+
+      const SizedBox(height: 12),
+
+      Wrap(
+        spacing: 10,
+        runSpacing: 10,
+        children: [
+
+          _actionChip(
+            Icons.quiz_outlined,
+            "Quiz Me",
+            () {},
+          ),
+
+          _actionChip(
+            Icons.style_outlined,
+            "Flashcards",
+            () {},
+          ),
+
+          _actionChip(
+            Icons.summarize_outlined,
+            "Summary",
+            () {},
+          ),
+
+          _actionChip(
+            Icons.lightbulb_outline_rounded,
+            "Examples",
+            () {},
+          ),
+
+          _actionChip(
+            Icons.code_rounded,
+            "Practice Coding",
+            () {},
+          ),
+
+        ],
+      ),
+    ],
+  );
+}
 
   Widget _buildAIHeader() {
     return Row(
@@ -108,32 +170,51 @@ class MessageBubble extends StatelessWidget {
     );
   }
 
-  Widget _actionChip(IconData icon, String label, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        decoration: BoxDecoration(
-          color: AppColors.surfaceElevated,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: AppColors.textMuted, size: 13),
-            const SizedBox(width: 4),
-            Text(
-              label,
-              style: const TextStyle(
-                color: AppColors.textMuted,
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
+ Widget _actionChip(
+  IconData icon,
+  String text,
+  VoidCallback onTap,
+) {
+  return InkWell(
+    borderRadius: BorderRadius.circular(24),
+    onTap: onTap,
+    child: AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 14,
+        vertical: 10,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: AppColors.border,
         ),
       ),
-    );
-  }
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+
+          Icon(
+            icon,
+            size: 17,
+            color: AppColors.textSecondary,
+          ),
+
+          const SizedBox(width: 8),
+
+          Text(
+            text,
+            style: const TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+
+        ],
+      ),
+    ),
+  );
+}
 }
