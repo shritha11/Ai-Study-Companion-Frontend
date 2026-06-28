@@ -16,88 +16,63 @@ class _TypingIndicatorState extends State<TypingIndicator>
   @override
   void initState() {
     super.initState();
-    _controllers = List.generate(
-      3,
-      (i) => AnimationController(
-        duration: const Duration(milliseconds: 600),
-        vsync: this,
-      ),
-    );
-    _animations = _controllers
-        .map((c) => Tween<double>(begin: 0, end: -6).animate(
-              CurvedAnimation(parent: c, curve: Curves.easeInOut),
-            ))
-        .toList();
-
+    _controllers = List.generate(3, (i) => AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 500)));
+    _animations = _controllers.map((c) =>
+        Tween<double>(begin: 0, end: -5).animate(
+            CurvedAnimation(parent: c, curve: Curves.easeInOut))).toList();
     for (int i = 0; i < _controllers.length; i++) {
-      Future.delayed(Duration(milliseconds: i * 150), () {
-        if (mounted) _controllers[i].repeat(reverse: true);
-      });
+      Future.delayed(Duration(milliseconds: i * 140),
+          () { if (mounted) _controllers[i].repeat(reverse: true); });
     }
   }
 
   @override
   void dispose() {
-    for (final c in _controllers) {
-      c.dispose();
-    }
+    for (final c in _controllers) c.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 64, 8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(18),
-            topRight: Radius.circular(18),
-            bottomRight: Radius.circular(18),
-            bottomLeft: Radius.circular(4),
+      padding: const EdgeInsets.fromLTRB(16, 4, 64, 8),
+      child: Row(children: [
+        Container(
+          width: 24, height: 24,
+          decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(7)),
+          child: const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 13),
+        ),
+        const SizedBox(width: 10),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: AppColors.card,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(16), topRight: Radius.circular(16),
+              bottomRight: Radius.circular(16), bottomLeft: Radius.circular(4),
+            ),
+            border: Border.all(color: AppColors.border),
           ),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 20,
-              height: 20,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [AppColors.primary, AppColors.secondary],
-                ),
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: const Icon(Icons.smart_toy_rounded,
-                  color: Colors.white, size: 12),
-            ),
-            const SizedBox(width: 10),
-            Row(
-              children: List.generate(3, (i) {
-                return AnimatedBuilder(
-                  animation: _animations[i],
-                  builder: (context, child) => Transform.translate(
-                    offset: Offset(0, _animations[i].value),
-                    child: Container(
-                      width: 7,
-                      height: 7,
-                      margin: const EdgeInsets.symmetric(horizontal: 2.5),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.8),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: List.generate(3, (i) => AnimatedBuilder(
+              animation: _animations[i],
+              builder: (_, __) => Transform.translate(
+                offset: Offset(0, _animations[i].value),
+                child: Container(
+                  width: 6, height: 6,
+                  margin: const EdgeInsets.symmetric(horizontal: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.7),
+                    shape: BoxShape.circle,
                   ),
-                );
-              }),
-            ),
-          ],
+                ),
+              ),
+            )),
+          ),
         ),
-      ),
+      ]),
     );
   }
 }

@@ -1,7 +1,10 @@
 class MessageModel {
   final String text;
   final bool isUser;
-  MessageModel({required this.text, required this.isUser});
+  final String? learningTitle;
+  final List<String>? actions;
+
+  MessageModel({required this.text, required this.isUser, this.learningTitle, this.actions});
 }
 
 class QuizQuestion {
