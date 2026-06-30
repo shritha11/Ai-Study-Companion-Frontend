@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../constants/app_colors.dart';
+import '../constants/app_radius.dart';
+import '../constants/app_spacing.dart';
+import 'brain_break_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -20,13 +24,15 @@ class HomeScreen extends StatelessWidget {
           physics: const BouncingScrollPhysics(),
           slivers: [
             SliverToBoxAdapter(child: _header()),
-            const SliverToBoxAdapter(child: SizedBox(height: 28)),
+            SliverToBoxAdapter(child: SizedBox(height: AppSpacing.lg)),
             SliverToBoxAdapter(child: _continueLearning()),
-            const SliverToBoxAdapter(child: SizedBox(height: 28)),
+            SliverToBoxAdapter(child: SizedBox(height: AppSpacing.lg)),
+            SliverToBoxAdapter(child: _brainBreak(context)), 
+            SliverToBoxAdapter(child: SizedBox(height: AppSpacing.lg)),
             SliverToBoxAdapter(child: _quickActions(context)),
-            const SliverToBoxAdapter(child: SizedBox(height: 28)),
+            SliverToBoxAdapter(child: SizedBox(height: AppSpacing.lg)),
             SliverToBoxAdapter(child: _recentSessions()),
-            const SliverToBoxAdapter(child: SizedBox(height: 40)),
+            SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xxl)),
           ],
         ),
       ),
@@ -35,23 +41,36 @@ class HomeScreen extends StatelessWidget {
 
   Widget _header() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+      padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(_greeting,
-              style: const TextStyle(color: AppColors.textSecondary, fontSize: 15)),
-          const SizedBox(height: 4),
-          const Text('Shritha 👋',
-              style: TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 34,
-                fontWeight: FontWeight.w700,
-                letterSpacing: -0.8,
-              )),
-          const SizedBox(height: 10),
-          const Text('Continue your learning journey.',
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 15)),
+          Text(
+            _greeting,
+            style: GoogleFonts.inter(
+              color: AppColors.textSecondary,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          SizedBox(height: AppSpacing.xs),
+          Text(
+            'Shritha 👋',
+            style: GoogleFonts.inter(
+              color: AppColors.textPrimary,
+              fontSize: 32,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.5,
+            ),
+          ),
+          SizedBox(height: AppSpacing.sm),
+          Text(
+            'Continue your learning journey.',
+            style: GoogleFonts.inter(
+              color: AppColors.textMuted,
+              fontSize: 15,
+            ),
+          ),
         ],
       ),
     );
@@ -59,41 +78,62 @@ class HomeScreen extends StatelessWidget {
 
   Widget _continueLearning() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+      padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
       child: InkWell(
         onTap: () {},
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppRadius.medium),
         child: Ink(
-          padding: const EdgeInsets.all(22),
+          padding: EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
             color: AppColors.card,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(AppRadius.medium),
             border: Border.all(color: AppColors.border),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Continue Learning',
-                  style: TextStyle(
-                      color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w600)),
-              const SizedBox(height: 14),
-              const Text('Data Structures',
-                  style: TextStyle(
-                      color: AppColors.textPrimary, fontSize: 22, fontWeight: FontWeight.w700)),
-              const SizedBox(height: 6),
-              const Text('Last session · Today · 6:42 PM',
-                  style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
-              const SizedBox(height: 20),
+              Text(
+                'CONTINUE LEARNING',
+                style: GoogleFonts.inter(
+                  color: AppColors.textMuted,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              SizedBox(height: AppSpacing.md),
+              Text(
+                'Data Structures',
+                style: GoogleFonts.inter(
+                  color: AppColors.textPrimary,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              SizedBox(height: AppSpacing.xs),
+              Text(
+                'Last session · Today · 6:42 PM',
+                style: GoogleFonts.inter(
+                  color: AppColors.textSecondary,
+                  fontSize: 13,
+                ),
+              ),
+              SizedBox(height: AppSpacing.lg),
               Row(children: [
-                const Text('Resume Learning',
-                    style: TextStyle(
-                        color: AppColors.textPrimary, fontSize: 14, fontWeight: FontWeight.w600)),
+                Text(
+                  'Resume Learning',
+                  style: GoogleFonts.inter(
+                    color: AppColors.primary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 const Spacer(),
                 Container(
                   width: 40, height: 40,
                   decoration: BoxDecoration(
                     color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppRadius.small),
                   ),
                   child: const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 18),
                 ),
@@ -105,26 +145,114 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
+  Widget _brainBreak(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg), 
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppRadius.medium),
+        onTap: () {
+          Navigator.push(context, MaterialPageRoute(
+            builder: (_) => const BrainBreakScreen(),
+          ));
+        }, 
+        child: Ink(
+          padding: EdgeInsets.all(AppSpacing.md), 
+          decoration: BoxDecoration(
+            color: const Color(0xffFFF7E8),
+            borderRadius: BorderRadius.circular(AppRadius.medium), 
+            border: Border.all(
+              color: const Color(0xffF5D37A),
+            ),
+          ), 
+          child: Row(
+            children: [
+              Container(
+                width: 58, 
+                height: 58, 
+                decoration: BoxDecoration(
+                  color: Colors.orange.shade100,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Icon(
+                  Icons.psychology_alt_rounded, 
+                  color: Colors.orange, 
+                  size: 28,
+                ),
+              ),
+              SizedBox(width: AppSpacing.md),
+
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start, 
+                  children: [
+                    Text("Brain Break", 
+                    style: GoogleFonts.inter(
+                      fontSize: 18, 
+                      fontWeight: FontWeight.w700, 
+                      color: Colors.black87,
+                    )),
+                    const SizedBox(height: 6),
+                    Text("Recharge with a fun 3-minute challenge.", 
+                    style: GoogleFonts.inter(
+                      color: Colors.black54, 
+                      fontSize: 13,
+                    )),
+                    const SizedBox(height: 14), 
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14, 
+                        vertical: 8,
+                      ), 
+                      decoration: BoxDecoration(
+                        color: Colors.orange, 
+                        borderRadius: BorderRadius.circular(20),
+                      ), 
+                      child: const Text("Start Challenge", 
+                      style: TextStyle(
+                        color: Colors.white, 
+                        fontWeight: FontWeight.w600,
+                      )),
+                    )
+                  ]
+                )
+              )
+            ]
+          )
+        )
+      ),
+    );
+  }
+
   Widget _quickActions(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+      padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Start Learning',
-              style: TextStyle(
-                  color: AppColors.textPrimary, fontSize: 20, fontWeight: FontWeight.w700)),
-          const SizedBox(height: 4),
-          const Text("Choose how you'd like to continue.",
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
-          const SizedBox(height: 18),
+          Text(
+            'Start Learning',
+            style: GoogleFonts.inter(
+              color: AppColors.textPrimary,
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          SizedBox(height: AppSpacing.xs),
+          Text(
+            "Choose how you'd like to continue.",
+            style: GoogleFonts.inter(
+              color: AppColors.textMuted,
+              fontSize: 14,
+            ),
+          ),
+          SizedBox(height: AppSpacing.md),
           _largeAction(
             icon: Icons.auto_awesome_rounded,
             title: 'Learn',
             subtitle: 'Ask Lumina anything',
             color: AppColors.primary,
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: AppSpacing.sm),
           Row(children: [
             Expanded(
               child: _smallAction(
@@ -134,7 +262,7 @@ class HomeScreen extends StatelessWidget {
                 color: AppColors.success,
               ),
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: AppSpacing.sm),
             Expanded(
               child: _smallAction(
                 icon: Icons.style_outlined,
@@ -144,12 +272,12 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
           ]),
-          const SizedBox(height: 12),
+          SizedBox(height: AppSpacing.sm),
           _largeAction(
             icon: Icons.folder_open_rounded,
             title: 'Library',
             subtitle: 'Your PDFs & Notes',
-            color: AppColors.blue,
+            color: AppColors.primary,
           ),
         ],
       ),
@@ -159,12 +287,12 @@ class HomeScreen extends StatelessWidget {
   Widget _largeAction({required IconData icon, required String title, required String subtitle, required Color color}) {
     return InkWell(
       onTap: () {},
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(AppRadius.medium),
       child: Ink(
-        padding: const EdgeInsets.all(18),
+        padding: EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
           color: AppColors.card,
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(AppRadius.medium),
           border: Border.all(color: AppColors.border),
         ),
         child: Row(children: [
@@ -172,22 +300,32 @@ class HomeScreen extends StatelessWidget {
             width: 48, height: 48,
             decoration: BoxDecoration(
               color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(AppRadius.small),
             ),
             child: Icon(icon, color: color, size: 22),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(title,
-                  style: const TextStyle(
-                      color: AppColors.textPrimary, fontSize: 16, fontWeight: FontWeight.w700)),
-              const SizedBox(height: 3),
-              Text(subtitle,
-                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+              Text(
+                title,
+                style: GoogleFonts.inter(
+                  color: AppColors.textPrimary,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              SizedBox(height: AppSpacing.xs),
+              Text(
+                subtitle,
+                style: GoogleFonts.inter(
+                  color: AppColors.textSecondary,
+                  fontSize: 13,
+                ),
+              ),
             ]),
           ),
-          const Icon(Icons.arrow_forward_ios_rounded, color: AppColors.textMuted, size: 15),
+          Icon(Icons.arrow_forward_ios_rounded, color: AppColors.textMuted, size: 15),
         ]),
       ),
     );
@@ -196,12 +334,12 @@ class HomeScreen extends StatelessWidget {
   Widget _smallAction({required IconData icon, required String title, required String subtitle, required Color color}) {
     return InkWell(
       onTap: () {},
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(AppRadius.medium),
       child: Ink(
-        padding: const EdgeInsets.all(18),
+        padding: EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
           color: AppColors.card,
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(AppRadius.medium),
           border: Border.all(color: AppColors.border),
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -209,17 +347,27 @@ class HomeScreen extends StatelessWidget {
             width: 40, height: 40,
             decoration: BoxDecoration(
               color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.small),
             ),
             child: Icon(icon, color: color, size: 20),
           ),
-          const SizedBox(height: 16),
-          Text(title,
-              style: const TextStyle(
-                  color: AppColors.textPrimary, fontSize: 15, fontWeight: FontWeight.w700)),
-          const SizedBox(height: 3),
-          Text(subtitle,
-              style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+          SizedBox(height: AppSpacing.md),
+          Text(
+            title,
+            style: GoogleFonts.inter(
+              color: AppColors.textPrimary,
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          SizedBox(height: AppSpacing.xs),
+          Text(
+            subtitle,
+            style: GoogleFonts.inter(
+              color: AppColors.textSecondary,
+              fontSize: 12,
+            ),
+          ),
         ]),
       ),
     );
@@ -233,27 +381,37 @@ class HomeScreen extends StatelessWidget {
     ];
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+      padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Recent Sessions',
-              style: TextStyle(
-                  color: AppColors.textPrimary, fontSize: 20, fontWeight: FontWeight.w700)),
-          const SizedBox(height: 4),
-          const Text('Continue from where you left off.',
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
-          const SizedBox(height: 18),
+          Text(
+            'Recent Sessions',
+            style: GoogleFonts.inter(
+              color: AppColors.textPrimary,
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          SizedBox(height: AppSpacing.xs),
+          Text(
+            'Continue from where you left off.',
+            style: GoogleFonts.inter(
+              color: AppColors.textMuted,
+              fontSize: 14,
+            ),
+          ),
+          SizedBox(height: AppSpacing.md),
           ...sessions.map((s) => Padding(
-            padding: const EdgeInsets.only(bottom: 10),
+            padding: EdgeInsets.only(bottom: AppSpacing.sm),
             child: InkWell(
               onTap: () {},
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(AppRadius.medium),
               child: Ink(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                padding: EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
                 decoration: BoxDecoration(
                   color: AppColors.card,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(AppRadius.medium),
                   border: Border.all(color: AppColors.border),
                 ),
                 child: Row(children: [
@@ -261,22 +419,32 @@ class HomeScreen extends StatelessWidget {
                     width: 38, height: 38,
                     decoration: BoxDecoration(
                       color: AppColors.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(11),
+                      borderRadius: BorderRadius.circular(AppRadius.small),
                     ),
                     child: Icon(s['icon'] as IconData, color: AppColors.primary, size: 18),
                   ),
-                  const SizedBox(width: 14),
+                  SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(s['title'] as String,
-                          style: const TextStyle(
-                              color: AppColors.textPrimary, fontSize: 14, fontWeight: FontWeight.w600)),
-                      const SizedBox(height: 3),
-                      Text(s['time'] as String,
-                          style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                      Text(
+                        s['title'] as String,
+                        style: GoogleFonts.inter(
+                          color: AppColors.textPrimary,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      SizedBox(height: AppSpacing.xs),
+                      Text(
+                        s['time'] as String,
+                        style: GoogleFonts.inter(
+                          color: AppColors.textSecondary,
+                          fontSize: 12,
+                        ),
+                      ),
                     ]),
                   ),
-                  const Icon(Icons.arrow_forward_ios_rounded, color: AppColors.textMuted, size: 14),
+                  Icon(Icons.arrow_forward_ios_rounded, color: AppColors.textMuted, size: 14),
                 ]),
               ),
             ),

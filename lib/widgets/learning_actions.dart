@@ -1,22 +1,20 @@
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
+import 'learning_sheet.dart';
+import 'quiz_widget.dart';
+import 'flashcards_widget.dart';
+import 'summary_widget.dart';
 
 class LearningActions extends StatelessWidget {
   final String title;
-  final VoidCallback onQuiz;
-  final VoidCallback onFlashcards;
-  final VoidCallback onSummary;
-  final VoidCallback onExamples;
-  final VoidCallback onCoding;
+  final String topic;
+  final String? pdfContext;
 
   const LearningActions({
     super.key,
     required this.title,
-    required this.onQuiz,
-    required this.onFlashcards,
-    required this.onSummary,
-    required this.onExamples,
-    required this.onCoding,
+    required this.topic,
+    this.pdfContext,
   });
 
   @override
@@ -38,18 +36,58 @@ class LearningActions extends StatelessWidget {
           spacing: 8,
           runSpacing: 8,
           children: [
-            _chip(Icons.quiz_outlined, 'Quiz Me', onQuiz),
-            _chip(Icons.style_outlined, 'Flashcards', onFlashcards),
-            _chip(Icons.summarize_outlined, 'Summary', onSummary),
-            _chip(Icons.lightbulb_outline_rounded, 'Examples', onExamples),
-            _chip(Icons.code_rounded, 'Practice Coding', onCoding),
+            _chip(context, Icons.quiz_outlined, 'Quiz Me', AppColors.primary, () {
+              showLearningSheet(
+                context: context,
+                title: 'Quiz · $topic',
+                icon: Icons.quiz_outlined,
+                accentColor: AppColors.primary,
+                child: QuizWidget(topic: topic, pdfContext: pdfContext),
+              );
+            }),
+            _chip(context, Icons.style_outlined, 'Flashcards', AppColors.warning, () {
+              showLearningSheet(
+                context: context,
+                title: 'Flashcards · $topic',
+                icon: Icons.style_outlined,
+                accentColor: AppColors.warning,
+                child: FlashcardsWidget(topic: topic, pdfContext: pdfContext),
+              );
+            }),
+            _chip(context, Icons.summarize_outlined, 'Summary', AppColors.blue, () {
+              showLearningSheet(
+                context: context,
+                title: 'Summary · $topic',
+                icon: Icons.summarize_outlined,
+                accentColor: AppColors.blue,
+                child: SummaryWidget(topic: topic),
+              );
+            }),
+            _chip(context, Icons.lightbulb_outline_rounded, 'Examples', AppColors.success, () {
+              showLearningSheet(
+                context: context,
+                title: 'Examples · $topic',
+                icon: Icons.lightbulb_outline_rounded,
+                accentColor: AppColors.success,
+                child: ExamplesWidget(topic: topic),
+              );
+            }),
+            _chip(context, Icons.code_rounded, 'Practice Coding', AppColors.primary, () {
+              showLearningSheet(
+                context: context,
+                title: 'Coding · $topic',
+                icon: Icons.code_rounded,
+                accentColor: AppColors.primary,
+                child: CodingWidget(topic: topic),
+              );
+            }),
           ],
         ),
       ],
     );
   }
 
-  Widget _chip(IconData icon, String label, VoidCallback onTap) {
+  Widget _chip(BuildContext context, IconData icon, String label, Color color, VoidCallback onTap) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(30),
@@ -63,7 +101,7 @@ class LearningActions extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 14, color: AppColors.primary),
+            Icon(icon, size: 14, color: color),
             const SizedBox(width: 6),
             Text(label,
                 style: const TextStyle(

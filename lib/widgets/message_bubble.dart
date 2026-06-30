@@ -7,20 +7,12 @@ import 'learning_actions.dart';
 
 class MessageBubble extends StatelessWidget {
   final MessageModel message;
-  final VoidCallback onQuiz;
-  final VoidCallback onFlashcards;
-  final VoidCallback onSummary;
-  final VoidCallback onExamples;
-  final VoidCallback onCoding;
+  final String? pdfContext;
 
   const MessageBubble({
     super.key,
     required this.message,
-    required this.onQuiz,
-    required this.onFlashcards,
-    required this.onSummary,
-    required this.onExamples,
-    required this.onCoding,
+    this.pdfContext,
   });
 
   @override
@@ -46,11 +38,8 @@ class MessageBubble extends StatelessWidget {
               const SizedBox(height: 16),
               LearningActions(
                 title: message.learningTitle!,
-                onQuiz: onQuiz,
-                onFlashcards: onFlashcards,
-                onSummary: onSummary,
-                onExamples: onExamples,
-                onCoding: onCoding,
+                topic: LearningHelper.extractTopic(message.text),
+                pdfContext: pdfContext,
               ),
             ],
           ],

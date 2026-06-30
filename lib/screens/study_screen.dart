@@ -1,18 +1,12 @@
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 import '../models/message_model.dart';
-import '../models/study_item.dart';
 import '../services/api_service.dart';
 import '../utils/learning_helper.dart';
 import '../widgets/chat_input.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/message_bubble.dart';
 import '../widgets/typing_indicator.dart';
-import '../widgets/quiz_widget.dart';
-import '../widgets/flashcards_widget.dart';
-import '../widgets/summary_widget.dart';
-//import '../widgets/examples_widget.dart';
-//import '../widgets/coding_widget.dart';
 
 class StudyScreen extends StatefulWidget {
   const StudyScreen({super.key});
@@ -24,7 +18,7 @@ class StudyScreen extends StatefulWidget {
 class _StudyScreenState extends State<StudyScreen> {
   final _controller = TextEditingController();
   final _scroll = ScrollController();
-  final List<StudyItem> _timeline = [];
+  final List<MessageModel> _messages = [];
   bool _isTyping = false;
   String? _pdfContext;
   String? _pdfName;
@@ -54,7 +48,7 @@ class _StudyScreenState extends State<StudyScreen> {
     _controller.clear();
 
     setState(() {
-      _timeline.add(StudyItem.message(MessageModel(text: msg, isUser: true)));
+      _messages.add(MessageModel(text: msg, isUser: true));
       _isTyping = true;
     });
     _scrollBottom();
@@ -63,29 +57,26 @@ class _StudyScreenState extends State<StudyScreen> {
       final response = await ApiService.chat(msg, pdfContext: _pdfContext);
       final title = LearningHelper.getTitle(msg);
       setState(() {
-        _timeline.add(StudyItem.message(MessageModel(
+        _messages.add(MessageModel(
           text: response,
           isUser: false,
           learningTitle: title,
-        )));
+        ));
         _isTyping = false;
       });
     } catch (_) {
       setState(() {
-        _timeline.add(StudyItem.message(MessageModel(
+        _messages.add(MessageModel(
           text: 'Something went wrong. Please try again.',
           isUser: false,
-        )));
+        ));
         _isTyping = false;
       });
     }
     _scrollBottom();
   }
 
-  void _addWidget(StudyItem item) {
-    setState(() => _timeline.add(item));
-    _scrollBottom();
-  }
+ 
 
   void _uploadPdf() {
     setState(() {
@@ -114,7 +105,7 @@ class _StudyScreenState extends State<StudyScreen> {
         children: [
           if (_pdfName != null) _pdfBanner(),
           Expanded(
-            child: _timeline.isEmpty
+            child: _messages.isEmpty
                 ? EmptyState(onChipTap: _send)
                 : _buildTimeline(),
           ),
@@ -144,8 +135,8 @@ class _StudyScreenState extends State<StudyScreen> {
           child: const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 16),
         ),
         const SizedBox(width: 10),
-        const Text('Lumina',
-            style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+        const Text('Eunoia',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
       ]),
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(1),
@@ -177,62 +168,20 @@ class _StudyScreenState extends State<StudyScreen> {
     return ListView.builder(
       controller: _scroll,
       padding: const EdgeInsets.symmetric(vertical: 12),
-      itemCount: _timeline.length,
+      itemCount: _messages.length,
       itemBuilder: (_, i) {
-        final item = _timeline[i];
+        final message = _messages[i];
         return _TimelineItemWrapper(
           key: ValueKey(i),
-          child: _buildItem(item),
+          child: MessageBubble(
+            message: message, 
+            pdfContext: _pdfContext,
+          ),
         );
       },
     );
   }
 
-  Widget _buildItem(StudyItem item) {
-    switch (item.type) {
-      case StudyItemType.message:
-        return MessageBubble(
-          message: item.message!,
-          onQuiz: () => _addWidget(StudyItem.quiz(
-              topic: LearningHelper.extractTopic(item.message!.text),
-              pdfContext: _pdfContext)),
-          onFlashcards: () => _addWidget(StudyItem.flashcards(
-              topic: LearningHelper.extractTopic(item.message!.text),
-              pdfContext: _pdfContext)),
-          onSummary: () => _addWidget(StudyItem.summary(
-              topic: LearningHelper.extractTopic(item.message!.text))),
-          onExamples: () => _addWidget(StudyItem.examples(
-              topic: LearningHelper.extractTopic(item.message!.text))),
-          onCoding: () => _addWidget(StudyItem.coding(
-              topic: LearningHelper.extractTopic(item.message!.text))),
-        );
-      case StudyItemType.quiz:
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: QuizWidget(topic: item.topic!, pdfContext: item.pdfContext),
-        );
-      case StudyItemType.flashcards:
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: FlashcardsWidget(topic: item.topic!, pdfContext: item.pdfContext),
-        );
-      case StudyItemType.summary:
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: SummaryWidget(topic: item.topic!),
-        );
-      case StudyItemType.examples:
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: ExamplesWidget(topic: item.topic!),
-        );
-      case StudyItemType.coding:
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: CodingWidget(topic: item.topic!),
-        );
-    }
-  }
 }
 
 class _TimelineItemWrapper extends StatefulWidget {
