@@ -64,6 +64,13 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
+  assets:
+    - assets/brain_break/
+    - assets/brain_break/entertainment/
+    - assets/brain_break/geography/
+    - assets/brain_break/technology/
+    - assets/brain_break/gaming/
+
   # To add assets to your application, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg

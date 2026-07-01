@@ -1,0 +1,43 @@
+{
+  "categories": [
+    {
+      "name": "Entertainment",
+      "icon": "🎬",
+      "color": "#FF9800",
+      "files": [
+        "entertainment/friends_trivia.json",
+        "entertainment/marvel.json",
+        "entertainment/disney.json",
+        "entertainment/harry_potter.json"
+      ]
+    },
+    {
+      "name": "Technology",
+      "icon": "💻",
+      "color": "#FF9800",
+      "files": [
+        "technology/flutter.json",
+        "technology/programming.json"
+      ]
+    },
+    {
+      "name": "Geography",
+      "icon": "🌎",
+      "color": "#FF9800",
+      "files": [
+        "geography/countries.json",
+        "geography/capitals.json",
+        "geography/flags.json"
+      ]
+    },
+    {
+      "name": "Gaming",
+      "icon": "🎮",
+      "color": "#FF9800",
+      "files": [
+        "gaming/minecraft.json",
+        "gaming/roblox.json"
+      ]
+    }
+  ]
+}

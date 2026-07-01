@@ -4,10 +4,12 @@ import 'package:google_fonts/google_fonts.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_radius.dart';
 import '../constants/app_spacing.dart';
-import '../data/brain_break_data.dart';
+
+import '../models/brain_break_challenge.dart';
+import '../models/brain_break_questions.dart';
 
 class BrainBreakQuizScreen extends StatefulWidget {
-  final Map<String, dynamic> challenge;
+  final BrainBreakChallenge challenge;
 
   const BrainBreakQuizScreen({
     super.key,
@@ -20,7 +22,7 @@ class BrainBreakQuizScreen extends StatefulWidget {
 
 class _BrainBreakQuizScreenState extends State<BrainBreakQuizScreen> {
 
-late List<Map<String, dynamic>> questions;
+late List<BrainBreakQuestion> questions;
 
   int currentQuestion = 0;
   int score = 0;
@@ -28,13 +30,13 @@ late List<Map<String, dynamic>> questions;
 
   @override
   void initState() {
-    super.initState();
+  super.initState();
 
-    questions = brainBreakQuestions[widget.challenge["title"]]!;
-  }
+  questions = List.from(widget.challenge.questions);
+} 
 
   void nextQuestion() {
-    if (selectedIndex == questions[currentQuestion]["answer"]) {
+    if (selectedIndex == questions[currentQuestion].answer) {
       score++;
     }
 
@@ -65,7 +67,7 @@ late List<Map<String, dynamic>> questions;
       backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: AppColors.background,
-        title: Text(widget.challenge["title"]),
+        title: Text(widget.challenge.title),
       ),
       body: Padding(
         padding: EdgeInsets.all(AppSpacing.lg),
@@ -90,7 +92,7 @@ late List<Map<String, dynamic>> questions;
             const SizedBox(height: 12),
 
             Text(
-              q["question"],
+              q.question,
               style: GoogleFonts.inter(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -100,7 +102,7 @@ late List<Map<String, dynamic>> questions;
             const SizedBox(height: 30),
 
             ...List.generate(
-              q["options"].length,
+              q.options.length,
               (index) {
                 final selected = selectedIndex == index;
 
@@ -128,7 +130,7 @@ late List<Map<String, dynamic>> questions;
                         ),
                       ),
                       child: Text(
-                        q["options"][index],
+                        q.options[index],
                         style: GoogleFonts.inter(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,

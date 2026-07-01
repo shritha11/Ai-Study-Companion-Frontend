@@ -1,6 +1,3 @@
-import 'dart:async';
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -8,6 +5,9 @@ import '../constants/app_colors.dart';
 import '../constants/app_radius.dart';
 import '../constants/app_spacing.dart';
 import 'brain_break_quiz_screen.dart';
+
+import '../models/brain_break_challenge.dart';
+import '../services/brain_break_service.dart';
 
 class BrainBreakScreen extends StatefulWidget {
   const BrainBreakScreen({super.key});
@@ -17,57 +17,28 @@ class BrainBreakScreen extends StatefulWidget {
 }
 
 class _BrainBreakScreenState extends State<BrainBreakScreen> {
+
+  BrainBreakChallenge? challenge;
   bool _loading = true;
 
-  late Map<String, dynamic> challenge;
-
-  final List<Map<String, dynamic>> _challenges = [
-    {
-      "title": "Friends Trivia",
-      "emoji": "🎬",
-      "color": Colors.orange,
-      "time": "2 mins",
-    },
-    {
-      "title": "Guess the Logo",
-      "emoji": "🎨",
-      "color": Colors.blue,
-      "time": "3 mins",
-    },
-    {
-      "title": "World Geography",
-      "emoji": "🌍",
-      "color": Colors.green,
-      "time": "2 mins",
-    },
-    {
-      "title": "Marvel Quiz",
-      "emoji": "🦸",
-      "color": Colors.red,
-      "time": "3 mins",
-    },
-    {
-      "title": "Tech Trivia",
-      "emoji": "💻",
-      "color": Colors.indigo,
-      "time": "2 mins",
-    },
-  ];
-
   @override
-  void initState() {
-    super.initState();
+void initState() {
+  super.initState();
 
-    challenge = _challenges[Random().nextInt(_challenges.length)];
+  _loadChallenge();
+}
 
-    Timer(const Duration(milliseconds: 1800), () {
-      if (mounted) {
-        setState(() {
-          _loading = false;
-        });
-      }
-    });
-  }
+Future<void> _loadChallenge() async {
+
+  challenge =
+      await BrainBreakService.loadRandomChallenge();
+
+  if (!mounted) return;
+
+  setState(() {
+    _loading = false;
+  });
+}
 
   @override
   Widget build(BuildContext context) {
@@ -140,11 +111,19 @@ class _BrainBreakScreenState extends State<BrainBreakScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                challenge["emoji"],
-                style: const TextStyle(fontSize: 60),
-              ),
-              const SizedBox(height: 20),
+              Container(
+  width: 90,
+  height: 90,
+  decoration: BoxDecoration(
+    color: AppColors.primary.withOpacity(.1),
+    shape: BoxShape.circle,
+  ),
+  child: const Icon(
+    Icons.psychology_alt_rounded,
+    size: 46,
+    color: AppColors.primary,
+  ),
+),
               Text(
                 "Today's Challenge",
                 style: GoogleFonts.inter(
@@ -154,7 +133,7 @@ class _BrainBreakScreenState extends State<BrainBreakScreen> {
               ),
               const SizedBox(height: 10),
               Text(
-                challenge["title"],
+                challenge!.title,
                 textAlign: TextAlign.center,
                 style: GoogleFonts.inter(
                   fontSize: 28,
@@ -163,7 +142,7 @@ class _BrainBreakScreenState extends State<BrainBreakScreen> {
               ),
               const SizedBox(height: 14),
               Text(
-                "Estimated Time • ${challenge["time"]}",
+                "Estimated Time • ${challenge!.estimatedTime}",
                 style: GoogleFonts.inter(
                   color: AppColors.textMuted,
                 ),
@@ -174,7 +153,7 @@ class _BrainBreakScreenState extends State<BrainBreakScreen> {
                 height: 54,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: challenge["color"],
+                    backgroundColor: AppColors.primary,
                     shape: RoundedRectangleBorder(
                       borderRadius:
                           BorderRadius.circular(AppRadius.medium),
@@ -185,7 +164,7 @@ class _BrainBreakScreenState extends State<BrainBreakScreen> {
                       context,
                       MaterialPageRoute(
                         builder: (_) => BrainBreakQuizScreen(
-                          challenge: challenge,
+                          challenge: challenge!,
                         ),
                       ),
                     );
