@@ -70,6 +70,7 @@ flutter:
     - assets/brain_break/geography/
     - assets/brain_break/technology/
     - assets/brain_break/gaming/
+    - assets/brain_break/emoji_guess/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

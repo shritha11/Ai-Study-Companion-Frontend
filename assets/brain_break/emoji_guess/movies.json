@@ -1,0 +1,45 @@
+{
+  "title": "Movies",
+  "items": [
+    {
+      "emoji": "🦁👑",
+      "answer": "The Lion King"
+    },
+    {
+      "emoji": "🧙⚡",
+      "answer": "Harry Potter"
+    },
+    {
+      "emoji": "🧊👸",
+      "answer": "Frozen"
+    },
+    {
+      "emoji": "🕷️🧑",
+      "answer": "Spider-Man"
+    },
+    {
+      "emoji": "🚢💎❤️",
+      "answer": "Titanic"
+    },
+    {
+      "emoji": "🤖🌎",
+      "answer": "WALL-E"
+    },
+    {
+      "emoji": "🐠🔍",
+      "answer": "Finding Nemo"
+    },
+    {
+      "emoji": "👻🚫",
+      "answer": "Ghostbusters"
+    },
+    {
+      "emoji": "🦖🏝️",
+      "answer": "Jurassic Park"
+    },
+    {
+      "emoji": "🚀🌌⭐",
+      "answer": "Star Wars"
+    }
+  ]
+}

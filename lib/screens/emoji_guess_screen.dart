@@ -5,86 +5,121 @@ import '../constants/app_colors.dart';
 import '../constants/app_radius.dart';
 import '../constants/app_spacing.dart';
 
-import '../models/brain_break_challenge.dart';
-import '../models/brain_break_questions.dart';
+import '../models/emoji_item.dart';
+import '../services/emoji_guess_service.dart';
 
-class BrainBreakQuizScreen extends StatefulWidget {
-  final BrainBreakChallenge challenge;
-
-  const BrainBreakQuizScreen({
-    super.key,
-    required this.challenge,
-  });
+class EmojiGuessScreen extends StatefulWidget {
+  const EmojiGuessScreen({super.key});
 
   @override
-  State<BrainBreakQuizScreen> createState() => _BrainBreakQuizScreenState();
+  State<EmojiGuessScreen> createState() => _EmojiGuessScreenState();
 }
 
-class _BrainBreakQuizScreenState extends State<BrainBreakQuizScreen> {
-  late List<BrainBreakQuestion> questions;
-  int currentQuestion = 0;
-  int score = 0;
-  int? selectedIndex;
-  bool answered = false;
+class _EmojiGuessScreenState extends State<EmojiGuessScreen> {
+  bool _loading = true;
+  bool _isGameOver = false;
+  int _current = 0;
+  int _score = 0;
+  int? _selectedIndex;
+  bool _answered = false;
+
+  late List<EmojiItem> _items;
+  List<String> _options = [];
 
   @override
   void initState() {
     super.initState();
-    questions = List.from(widget.challenge.questions)..shuffle();
-    questions = questions.take(10).toList();
+    _loadGame();
   }
 
-  void handleSubmission() {
-    if (selectedIndex == null) return;
+  Future<void> _loadGame() async {
+    try {
+      final fetchedItems = await EmojiGuessService.loadRandomGame();
+      if (!mounted) return;
+
+      setState(() {
+        _items = fetchedItems;
+        _current = 0;
+        _score = 0;
+        _selectedIndex = null;
+        _answered = false;
+        _isGameOver = false;
+        if (_items.isNotEmpty) {
+          _options = _generateOptions(_items[_current]);
+        }
+        _loading = false;
+      });
+    } catch (e) {
+      // Gracefully handle data load empty states or system asset missing exceptions
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
+  List<String> _generateOptions(EmojiItem currentItem) {
+    final answers = _items
+        .map((e) => e.answer)
+        .where((e) => e != currentItem.answer)
+        .toList();
+
+    answers.shuffle();
+
+    final options = [
+      currentItem.answer,
+      ...answers.take(3),
+    ];
+
+    options.shuffle();
+    return options;
+  }
+
+  void _handleSubmission() {
+    if (_selectedIndex == null) return;
 
     setState(() {
-      answered = true;
-      if (selectedIndex == questions[currentQuestion].answer) {
-        score++;
+      _answered = true;
+      if (_options[_selectedIndex!] == _items[_current].answer) {
+        _score++;
       }
     });
   }
 
-  void nextQuestion() {
-    if (currentQuestion == questions.length - 1) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => BrainBreakResultScreen(
-            score: score,
-            total: questions.length,
-            onPlayAgain: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => BrainBreakQuizScreen(challenge: widget.challenge),
-                ),
-              );
-            },
-          ),
-        ),
-      );
+  void _next() {
+    if (_current == _items.length - 1) {
+      setState(() {
+        _isGameOver = true;
+      });
       return;
     }
 
     setState(() {
-      currentQuestion++;
-      selectedIndex = null;
-      answered = false;
+      _current++;
+      _answered = false;
+      _selectedIndex = null;
+      _options = _generateOptions(_items[_current]);
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    if (questions.isEmpty) {
+    if (_loading) {
       return Scaffold(
         backgroundColor: AppColors.background,
-        body: const Center(child: Text("No questions available.")),
+        body: const Center(
+          child: CircularProgressIndicator(),
+        ),
       );
     }
 
-    final q = questions[currentQuestion];
-    final isCorrectSelection = answered && (selectedIndex == q.answer);
+    if (_isGameOver) {
+      return _buildGameOverView();
+    }
+
+    final item = _items[_current];
+    final isCorrectSelection = _answered &&
+        (_options[_selectedIndex ?? 0] == item.answer);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -97,7 +132,7 @@ class _BrainBreakQuizScreenState extends State<BrainBreakQuizScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          "Brain Quiz",
+          "Emoji Guess",
           style: GoogleFonts.inter(
             fontWeight: FontWeight.w700,
             color: AppColors.textPrimary,
@@ -110,12 +145,12 @@ class _BrainBreakQuizScreenState extends State<BrainBreakQuizScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Gamified Stats Header Block
+              // Top Stats Status Indicators
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "Question ${currentQuestion + 1} / ${questions.length}",
+                    "Puzzle ${_current + 1} / ${_items.length}",
                     style: GoogleFonts.inter(
                       color: AppColors.textSecondary,
                       fontWeight: FontWeight.w600,
@@ -123,7 +158,10 @@ class _BrainBreakQuizScreenState extends State<BrainBreakQuizScreen> {
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.card,
                       borderRadius: BorderRadius.circular(AppRadius.small),
@@ -131,9 +169,9 @@ class _BrainBreakQuizScreenState extends State<BrainBreakQuizScreen> {
                     ),
                     child: Row(
                       children: [
-                        const Text("🏆 ", style: TextStyle(fontSize: 14)),
+                        const Text("🏆 ", style: TextStyle(fontSize: 16)),
                         Text(
-                          "$score",
+                          "$_score",
                           style: GoogleFonts.inter(
                             fontWeight: FontWeight.bold,
                             color: AppColors.textPrimary,
@@ -146,63 +184,60 @@ class _BrainBreakQuizScreenState extends State<BrainBreakQuizScreen> {
               ),
               const SizedBox(height: 12),
 
-              // Progress Bar
+              // Progress Bar Indicator
               ClipRRect(
                 borderRadius: BorderRadius.circular(AppRadius.small),
                 child: LinearProgressIndicator(
+                  value: (_current + 1) / _items.length,
                   minHeight: 8,
-                  value: (currentQuestion + 1) / questions.length,
                   backgroundColor: AppColors.border,
                   valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
                 ),
               ),
-              const SizedBox(height: 28),
+              const SizedBox(height: 32),
 
-              // Question Display & Options View
+              // Central Gameplay Card Stack
               Expanded(
                 child: SingleChildScrollView(
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Container(
                         width: double.infinity,
-                        padding: const EdgeInsets.all(24),
+                        padding: const EdgeInsets.symmetric(vertical: 40),
                         decoration: BoxDecoration(
                           color: AppColors.card,
                           borderRadius: BorderRadius.circular(AppRadius.large),
                           border: Border.all(color: AppColors.border),
                         ),
-                        child: Text(
-                          q.question,
-                          style: GoogleFonts.inter(
-                            color: AppColors.textPrimary,
-                            fontSize: 22,
-                            fontWeight: FontWeight.w700,
-                            height: 1.4,
+                        child: Center(
+                          child: Text(
+                            item.emoji,
+                            style: const TextStyle(fontSize: 80),
                           ),
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 28),
 
-                      // Selection Options Map Loop
+                      // Multiple Choice Option Blocks
                       ...List.generate(
-                        q.options.length,
+                        _options.length,
                         (index) {
+                          final option = _options[index];
                           Color border = AppColors.border;
                           Color bg = AppColors.card;
                           Color textColor = AppColors.textPrimary;
 
-                          if (answered) {
-                            if (index == q.answer) {
+                          if (_answered) {
+                            if (option == item.answer) {
                               bg = Colors.green.withOpacity(.12);
                               border = Colors.green;
                               textColor = Colors.green.shade800;
-                            } else if (index == selectedIndex) {
+                            } else if (index == _selectedIndex) {
                               bg = Colors.red.withOpacity(.12);
                               border = Colors.red;
                               textColor = Colors.red.shade800;
                             }
-                          } else if (selectedIndex == index) {
+                          } else if (_selectedIndex == index) {
                             bg = AppColors.primary.withOpacity(.10);
                             border = AppColors.primary;
                           }
@@ -210,53 +245,37 @@ class _BrainBreakQuizScreenState extends State<BrainBreakQuizScreen> {
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 14),
                             child: GestureDetector(
-                              onTap: answered
+                              onTap: _answered
                                   ? null
                                   : () {
                                       setState(() {
-                                        selectedIndex = index;
+                                        _selectedIndex = index;
                                       });
                                     },
                               child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 220),
-                                padding: const EdgeInsets.all(18),
+                                duration: const Duration(milliseconds: 250),
+                                curve: Curves.easeInOut,
+                                padding: const EdgeInsets.all(20),
                                 decoration: BoxDecoration(
                                   color: bg,
                                   borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(
-                                    color: border,
-                                    width: selectedIndex == index || (answered && index == q.answer) ? 2 : 1,
-                                  ),
+                                  border: Border.all(color: border, width: 2),
                                 ),
                                 child: Row(
                                   children: [
-                                    CircleAvatar(
-                                      radius: 16,
-                                      backgroundColor: selectedIndex == index
-                                          ? (answered ? (isCorrectSelection ? Colors.green : Colors.red) : AppColors.primary)
-                                          : AppColors.background,
-                                      child: Text(
-                                        String.fromCharCode(65 + index),
-                                        style: GoogleFonts.inter(
-                                          color: selectedIndex == index ? Colors.white : AppColors.textPrimary,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 16),
                                     Expanded(
                                       child: Text(
-                                        q.options[index],
+                                        option,
                                         style: GoogleFonts.inter(
-                                          color: textColor,
-                                          fontSize: 16,
                                           fontWeight: FontWeight.w600,
+                                          fontSize: 16,
+                                          color: textColor,
                                         ),
                                       ),
                                     ),
-                                    if (answered && index == q.answer)
+                                    if (_answered && option == item.answer)
                                       const Icon(Icons.check_circle_rounded, color: Colors.green)
-                                    else if (answered && index == selectedIndex)
+                                    else if (_answered && index == _selectedIndex)
                                       const Icon(Icons.cancel_rounded, color: Colors.red),
                                   ],
                                 ),
@@ -270,28 +289,35 @@ class _BrainBreakQuizScreenState extends State<BrainBreakQuizScreen> {
                 ),
               ),
 
-              // Premium Banner Message Switcher
+              // Gamified Feedback Message Banner
               AnimatedSwitcher(
-                duration: const Duration(milliseconds: 250),
-                child: answered
+                duration: const Duration(milliseconds: 300),
+                child: _answered
                     ? Container(
-                        key: ValueKey<int>(currentQuestion),
+                        key: ValueKey<int>(_current),
                         margin: const EdgeInsets.only(bottom: 20),
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: isCorrectSelection ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                          color: isCorrectSelection
+                              ? Colors.green.withOpacity(0.1)
+                              : Colors.red.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(AppRadius.medium),
                         ),
                         child: Row(
                           children: [
-                            Text(isCorrectSelection ? "🎉" : "❌", style: const TextStyle(fontSize: 20)),
+                            Text(
+                              isCorrectSelection ? "🎉" : "❌",
+                              style: const TextStyle(fontSize: 20),
+                            ),
                             const SizedBox(width: 12),
                             Text(
                               isCorrectSelection ? "Correct!" : "Nice try!",
                               style: GoogleFonts.inter(
                                 fontWeight: FontWeight.w700,
                                 fontSize: 16,
-                                color: isCorrectSelection ? Colors.green.shade800 : Colors.red.shade800,
+                                color: isCorrectSelection
+                                    ? Colors.green.shade800
+                                    : Colors.red.shade800,
                               ),
                             ),
                           ],
@@ -300,23 +326,25 @@ class _BrainBreakQuizScreenState extends State<BrainBreakQuizScreen> {
                     : const SizedBox.shrink(),
               ),
 
-              // Action Control Bar Button
+              // Bottom Dynamic Submission/Next Button
               SizedBox(
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: selectedIndex == null ? Colors.grey.shade400 : AppColors.primary,
+                    backgroundColor: _selectedIndex == null 
+                        ? Colors.grey.shade400 
+                        : AppColors.primary,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(AppRadius.medium),
                     ),
                   ),
-                  onPressed: selectedIndex == null
+                  onPressed: _selectedIndex == null
                       ? null
-                      : (answered ? nextQuestion : handleSubmission),
+                      : (_answered ? _next : _handleSubmission),
                   child: Text(
-                    answered ? "Next →" : "Submit Answer",
+                    _answered ? "Next →" : "Submit Answer",
                     style: GoogleFonts.inter(
                       color: Colors.white,
                       fontWeight: FontWeight.w700,
@@ -331,24 +359,11 @@ class _BrainBreakQuizScreenState extends State<BrainBreakQuizScreen> {
       ),
     );
   }
-}
 
-class BrainBreakResultScreen extends StatelessWidget {
-  final int score;
-  final int total;
-  final VoidCallback onPlayAgain;
-
-  const BrainBreakResultScreen({
-    super.key,
-    required this.score,
-    required this.total,
-    required this.onPlayAgain,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final double standardPercent = total == 0 ? 0 : (score / total);
-
+  // Extracted Game Over Screen View
+  Widget _buildGameOverView() {
+    final double standardPercent = _items.isEmpty ? 0 : (_score / _items.length);
+    
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -360,11 +375,14 @@ class BrainBreakResultScreen extends StatelessWidget {
             children: [
               const Spacer(),
               const Center(
-                child: Text("🏁", style: TextStyle(fontSize: 80)),
+                child: Text(
+                  "🏁",
+                  style: TextStyle(fontSize: 80),
+                ),
               ),
               const SizedBox(height: 24),
               Text(
-                "Quiz Complete!",
+                "Challenge Complete!",
                 textAlign: TextAlign.center,
                 style: GoogleFonts.inter(
                   fontSize: 28,
@@ -374,9 +392,9 @@ class BrainBreakResultScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Text(
-                standardPercent >= 0.6
-                    ? "Exceptional score! Your mental sharpness is running high."
-                    : "Good effort! Let's rerun the pool to secure a perfect score.",
+                standardPercent >= 0.6 
+                    ? "Fantastic job keeping your brain active!"
+                    : "Great practice! Try again to boost your score.",
                 textAlign: TextAlign.center,
                 style: GoogleFonts.inter(
                   fontSize: 16,
@@ -384,8 +402,8 @@ class BrainBreakResultScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 40),
-
-              // Grid Performance Break Card Widget Block
+              
+              // Score breakdown display panel
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
@@ -408,9 +426,9 @@ class BrainBreakResultScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          "🏆 $score / $total",
+                          "🏆 $_score",
                           style: GoogleFonts.inter(
-                            fontSize: 22,
+                            fontSize: 24,
                             fontWeight: FontWeight.w800,
                             color: AppColors.primary,
                           ),
@@ -432,7 +450,7 @@ class BrainBreakResultScreen extends StatelessWidget {
                         Text(
                           "${(standardPercent * 100).toInt()}%",
                           style: GoogleFonts.inter(
-                            fontSize: 22,
+                            fontSize: 24,
                             fontWeight: FontWeight.w800,
                             color: AppColors.textPrimary,
                           ),
@@ -444,7 +462,7 @@ class BrainBreakResultScreen extends StatelessWidget {
               ),
               const Spacer(),
 
-              // Complete Interaction Command Stack
+              // Game Over Control Buttons
               SizedBox(
                 height: 56,
                 child: ElevatedButton(
@@ -454,7 +472,12 @@ class BrainBreakResultScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(AppRadius.medium),
                     ),
                   ),
-                  onPressed: onPlayAgain,
+                  onPressed: () {
+                    setState(() {
+                      _loading = true;
+                    });
+                    _loadGame();
+                  },
                   child: Text(
                     "Play Again",
                     style: GoogleFonts.inter(
@@ -476,7 +499,8 @@ class BrainBreakResultScreen extends StatelessWidget {
                     ),
                   ),
                   onPressed: () {
-                    Navigator.popUntil(context, (route) => route.isFirst);
+                    // Pops back to the dashboard/BrainBreakScreen index view
+                    Navigator.pop(context);
                   },
                   child: Text(
                     "Back Home",
