@@ -7,12 +7,12 @@ import 'learning_actions.dart';
 
 class MessageBubble extends StatelessWidget {
   final MessageModel message;
-  final String? pdfContext;
+  final String? documentName;
 
   const MessageBubble({
     super.key,
     required this.message,
-    this.pdfContext,
+    this.documentName,
   });
 
   @override
@@ -39,7 +39,7 @@ class MessageBubble extends StatelessWidget {
               LearningActions(
                 title: message.learningTitle!,
                 topic: LearningHelper.extractTopic(message.text),
-                pdfContext: pdfContext,
+                documentName: documentName,
               ),
             ],
           ],

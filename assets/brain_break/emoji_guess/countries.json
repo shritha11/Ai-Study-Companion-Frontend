@@ -1,0 +1,13 @@
+{
+ "title": "Countries",
+  "items": [
+    { "emoji": "🍁🥞🦫", "answer": "Canada" },
+    { "emoji": "🍣🌸🗼", "answer": "Japan" },
+    { "emoji": "🦘🐨☀️", "answer": "Australia" },
+    { "emoji": "🍕🏛️🇮🇹", "answer": "Italy" },
+    { "emoji": "🌮🌵🎺", "answer": "Mexico" },
+    { "emoji": "🗺️🏰👑", "answer": "United Kingdom" },
+    { "emoji": "🥖🗼🍷", "answer": "France" },
+    { "emoji": "🦁🇿🇦🐘", "answer": "South Africa" }
+  ]
+}

@@ -8,13 +8,13 @@ import 'summary_widget.dart';
 class LearningActions extends StatelessWidget {
   final String title;
   final String topic;
-  final String? pdfContext;
+  final String? documentName;
 
   const LearningActions({
     super.key,
     required this.title,
     required this.topic,
-    this.pdfContext,
+    this.documentName,
   });
 
   @override
@@ -42,7 +42,7 @@ class LearningActions extends StatelessWidget {
                 title: 'Quiz · $topic',
                 icon: Icons.quiz_outlined,
                 accentColor: AppColors.primary,
-                child: QuizWidget(topic: topic, pdfContext: pdfContext),
+                child: QuizWidget(topic: topic, documentName: documentName),
               );
             }),
             _chip(context, Icons.style_outlined, 'Flashcards', AppColors.warning, () {
@@ -51,7 +51,7 @@ class LearningActions extends StatelessWidget {
                 title: 'Flashcards · $topic',
                 icon: Icons.style_outlined,
                 accentColor: AppColors.warning,
-                child: FlashcardsWidget(topic: topic, pdfContext: pdfContext),
+                child: FlashcardsWidget(topic: topic, documentName: documentName),
               );
             }),
             _chip(context, Icons.summarize_outlined, 'Summary', AppColors.blue, () {

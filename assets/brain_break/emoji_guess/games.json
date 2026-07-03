@@ -1,0 +1,13 @@
+{ 
+  "title": "Games",
+  "items": [
+    { "emoji": "⛏️🧱💎", "answer": "Minecraft" },
+    { "emoji": "🚗⚽️💨", "answer": "Rocket League" },
+    { "emoji": "🐒🍌🏎️", "answer": "Mario Kart" },
+    { "emoji": "🪂🔫🪵", "answer": "Fortnite" },
+    { "emoji": "🕵️‍♂️🔪🚀", "answer": "Among Us" },
+    { "emoji": "🍬🍭🔨", "answer": "Candy Crush" },
+    { "emoji": "🏰🛡️🐉", "answer": "Elden Ring" },
+    { "emoji": "👻🟡👾", "answer": "Pac-Man" }
+  ]
+}

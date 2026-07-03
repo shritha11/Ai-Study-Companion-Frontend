@@ -20,7 +20,7 @@ class _StudyScreenState extends State<StudyScreen> {
   final _scroll = ScrollController();
   final List<MessageModel> _messages = [];
   bool _isTyping = false;
-  String? _pdfContext;
+  String? _documentName;
   String? _pdfName;
 
   @override
@@ -54,7 +54,7 @@ class _StudyScreenState extends State<StudyScreen> {
     _scrollBottom();
 
     try {
-      final response = await ApiService.chat(msg, pdfContext: _pdfContext);
+      final response = await ApiService.chat(msg, documentName: _documentName);
       final title = LearningHelper.getTitle(msg);
       setState(() {
         _messages.add(MessageModel(
@@ -78,17 +78,19 @@ class _StudyScreenState extends State<StudyScreen> {
 
  
 
-  void _uploadPdf() {
+  Future<void> _uploadPdf() async {
+    final result = await ApiService.uploadPdf();
+    if (result == null) return;
     setState(() {
-      _pdfName = 'DSA_Notes.pdf';
-      _pdfContext =
-          'This document covers Data Structures and Algorithms including Arrays, Linked Lists, Trees, Graphs, Sorting and Searching algorithms.';
+      _pdfName = result["original_filename"];
+      _documentName = result["document_name"];
     });
+    
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Row(children: [
         const Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 16),
         const SizedBox(width: 8),
-        Text('$_pdfName uploaded'),
+        Text('$_pdfName uploaded successfully'),
       ]),
       backgroundColor: AppColors.card,
       behavior: SnackBarBehavior.floating,
@@ -157,7 +159,7 @@ class _StudyScreenState extends State<StudyScreen> {
               style: const TextStyle(color: AppColors.primary, fontSize: 12, fontWeight: FontWeight.w500)),
         ),
         GestureDetector(
-          onTap: () => setState(() { _pdfName = null; _pdfContext = null; }),
+          onTap: () => setState(() { _pdfName = null; _documentName = null; }),
           child: const Icon(Icons.close_rounded, color: AppColors.primary, size: 16),
         ),
       ]),
@@ -175,7 +177,6 @@ class _StudyScreenState extends State<StudyScreen> {
           key: ValueKey(i),
           child: MessageBubble(
             message: message, 
-            pdfContext: _pdfContext,
           ),
         );
       },

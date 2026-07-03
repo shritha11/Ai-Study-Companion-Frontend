@@ -7,6 +7,7 @@ import '../constants/app_radius.dart';
 import '../constants/app_spacing.dart';
 import 'brain_break_quiz_screen.dart';
 import 'emoji_guess_screen.dart';
+import 'would_you_rather_screen.dart';
 
 import '../models/brain_break_challenge.dart';
 import '../services/brain_break_service.dart';
@@ -33,7 +34,7 @@ class _BrainBreakScreenState extends State<BrainBreakScreen> {
     try {
       challenge = await BrainBreakService.loadRandomChallenge();
       
-      final games = ["quiz", "emoji"];
+      final games = ["quiz", "emoji", "wyr"];
       gameType = games[Random().nextInt(games.length)];
     } catch (e) {
       // Safe fallback logic if service infrastructure returns null configuration
@@ -131,16 +132,22 @@ class _BrainBreakScreenState extends State<BrainBreakScreen> {
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
-                  isQuiz
-                      ? Icons.psychology_alt_rounded
-                      : Icons.emoji_emotions_rounded,
+                  gameType == "quiz"
+      ? Icons.psychology_alt_rounded
+      : gameType == "emoji"
+          ? Icons.emoji_emotions_rounded
+          : Icons.balance_rounded,
                   size: 46,
                   color: AppColors.primary,
                 ),
               ),
               const SizedBox(height: 16),
               Text(
-                isQuiz ? "Today's Quiz" : "Today's Emoji Guess",
+                gameType == "quiz"
+                    ? "Today's Quiz"
+                    : gameType == "emoji"
+                        ? "Today's Emoji Guess"
+                        : "Today's Would You Rather",
                 style: GoogleFonts.inter(
                   color: AppColors.textSecondary,
                   fontWeight: FontWeight.w600,
@@ -178,24 +185,14 @@ class _BrainBreakScreenState extends State<BrainBreakScreen> {
                     ),
                   ),
                   onPressed: () {
-                    if (isQuiz) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => BrainBreakQuizScreen(
-                            challenge: challenge!,
-                          ),
-                        ),
-                      );
-                    } else {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const EmojiGuessScreen(),
-                        ),
-                      );
-                    }
-                  },
+  if (gameType == "quiz") {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => BrainBreakQuizScreen(challenge: challenge!)));
+  } else if (gameType == "emoji") {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => const EmojiGuessScreen()));
+  } else {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => const WouldYouRatherScreen()));
+  }
+},
                   child: Text(
                     "Start Challenge",
                     style: GoogleFonts.inter(

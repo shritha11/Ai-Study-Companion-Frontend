@@ -1,0 +1,13 @@
+{
+  "title": "Brands",
+  "items": [
+    { "emoji": "🍎📱", "answer": "Apple" },
+    { "emoji": "☕️🧜‍♀️", "answer": "Starbucks" },
+    { "emoji": "🏎️🇮🇹🐎", "answer": "Ferrari" },
+    { "emoji": "🟥🎥🍿", "answer": "Netflix" },
+    { "emoji": "🍔🍟👑", "answer": "Burger King" },
+    { "emoji": "🟡🔴🔵", "answer": "Google" },
+    { "emoji": "👟🔥✔️", "answer": "Nike" },
+    { "emoji": "🥤🐻🔴", "answer": "Coca-Cola" }
+  ]
+}

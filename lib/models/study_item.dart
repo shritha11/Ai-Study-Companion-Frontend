@@ -13,8 +13,8 @@ class StudyItem {
   final StudyItemType type;
   final MessageModel? message;
   final String? topic;
-  final String? pdfContext;
-  const StudyItem({required this.type, this.message, this.topic, this.pdfContext,
+  final String? documentName;
+  const StudyItem({required this.type, this.message, this.topic, this.documentName,
  });
 
   factory StudyItem.message(MessageModel message){
@@ -24,56 +24,61 @@ class StudyItem {
     );
   }
 
-  factory StudyItem.quiz({ required String topic, String? pdfContext,
+  factory StudyItem.quiz({ required String topic, String? documentName,
   }){
 
     return StudyItem(
      type: StudyItemType.quiz,
      topic: topic,
-     pdfContext: pdfContext,
+     documentName: documentName,
    );
 }
 
   factory StudyItem.flashcards({
     required String topic,
-    String? pdfContext,
+    String? documentName,
   }){
 
     return StudyItem(
       type: StudyItemType.flashcards,
       topic: topic,
-      pdfContext: pdfContext,
+      documentName: documentName,
     );
   }
 
   factory StudyItem.summary({
     required String topic,
+    String? documentName,
   }){
 
     return StudyItem(
      type: StudyItemType.summary,
-    topic: topic,
+     topic: topic,
+     documentName: documentName,
     );
   }
 
   factory StudyItem.examples({
     required String topic,
+    String? documentName,
  }){
 
     return StudyItem(
      type: StudyItemType.examples,
      topic: topic,
+     documentName: documentName,
     );
   }
 
   factory StudyItem.coding({
    required String topic,
-
+   String? documentName,
   }){
 
     return StudyItem(
       type: StudyItemType.coding,
       topic: topic,
+      documentName: documentName,
     );
   }
 }

@@ -5,9 +5,9 @@ import '../services/api_service.dart';
 
 class QuizWidget extends StatefulWidget {
   final String topic;
-  final String? pdfContext;
+  final String? documentName;
 
-  const QuizWidget({super.key, required this.topic, this.pdfContext});
+  const QuizWidget({super.key, required this.topic, this.documentName});
 
   @override
   State<QuizWidget> createState() => _QuizWidgetState();
@@ -29,7 +29,7 @@ class _QuizWidgetState extends State<QuizWidget> {
   Future<void> _load() async {
     setState(() { _loading = true; _error = null; _done = false; _current = 0; });
     try {
-      final qs = await ApiService.generateQuiz(widget.topic, pdfContext: widget.pdfContext);
+      final qs = await ApiService.generateQuiz(widget.topic, documentName: widget.documentName);
       setState(() { _questions = qs; _loading = false; });
     } catch (_) {
       setState(() { _error = 'Failed to generate quiz.'; _loading = false; });

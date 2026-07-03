@@ -34,6 +34,7 @@ class _EmojiGuessScreenState extends State<EmojiGuessScreen> {
 
   Future<void> _loadGame() async {
     try {
+      // 1. Fetch the random file pool from the service (Movies, Brands, Countries, or Games)
       final fetchedItems = await EmojiGuessService.loadRandomGame();
       if (!mounted) return;
 
@@ -44,13 +45,14 @@ class _EmojiGuessScreenState extends State<EmojiGuessScreen> {
         _selectedIndex = null;
         _answered = false;
         _isGameOver = false;
+        
+        // 2. FORCE the options generator to only use the newly selected JSON items pool
         if (_items.isNotEmpty) {
-          _options = _generateOptions(_items[_current]);
+          _options = _generateOptions(_items[_current], _items);
         }
         _loading = false;
       });
     } catch (e) {
-      // Gracefully handle data load empty states or system asset missing exceptions
       if (!mounted) return;
       setState(() {
         _loading = false;
@@ -58,8 +60,9 @@ class _EmojiGuessScreenState extends State<EmojiGuessScreen> {
     }
   }
 
-  List<String> _generateOptions(EmojiItem currentItem) {
-    final answers = _items
+  // Explicitly passing the current active pool ensures wrong options match the active category
+  List<String> _generateOptions(EmojiItem currentItem, List<EmojiItem> activePool) {
+    final answers = activePool
         .map((e) => e.answer)
         .where((e) => e != currentItem.answer)
         .toList();
@@ -98,7 +101,8 @@ class _EmojiGuessScreenState extends State<EmojiGuessScreen> {
       _current++;
       _answered = false;
       _selectedIndex = null;
-      _options = _generateOptions(_items[_current]);
+      // Regenerate using the explicit pool bounds
+      _options = _generateOptions(_items[_current], _items);
     });
   }
 
@@ -118,8 +122,7 @@ class _EmojiGuessScreenState extends State<EmojiGuessScreen> {
     }
 
     final item = _items[_current];
-    final isCorrectSelection = _answered &&
-        (_options[_selectedIndex ?? 0] == item.answer);
+    final isCorrectSelection = _answered && (_options[_selectedIndex ?? 0] == item.answer);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -145,7 +148,6 @@ class _EmojiGuessScreenState extends State<EmojiGuessScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Top Stats Status Indicators
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -158,10 +160,7 @@ class _EmojiGuessScreenState extends State<EmojiGuessScreen> {
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: AppColors.card,
                       borderRadius: BorderRadius.circular(AppRadius.small),
@@ -183,8 +182,6 @@ class _EmojiGuessScreenState extends State<EmojiGuessScreen> {
                 ],
               ),
               const SizedBox(height: 12),
-
-              // Progress Bar Indicator
               ClipRRect(
                 borderRadius: BorderRadius.circular(AppRadius.small),
                 child: LinearProgressIndicator(
@@ -195,8 +192,6 @@ class _EmojiGuessScreenState extends State<EmojiGuessScreen> {
                 ),
               ),
               const SizedBox(height: 32),
-
-              // Central Gameplay Card Stack
               Expanded(
                 child: SingleChildScrollView(
                   child: Column(
@@ -217,8 +212,6 @@ class _EmojiGuessScreenState extends State<EmojiGuessScreen> {
                         ),
                       ),
                       const SizedBox(height: 28),
-
-                      // Multiple Choice Option Blocks
                       ...List.generate(
                         _options.length,
                         (index) {
@@ -288,8 +281,6 @@ class _EmojiGuessScreenState extends State<EmojiGuessScreen> {
                   ),
                 ),
               ),
-
-              // Gamified Feedback Message Banner
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 300),
                 child: _answered
@@ -298,26 +289,19 @@ class _EmojiGuessScreenState extends State<EmojiGuessScreen> {
                         margin: const EdgeInsets.only(bottom: 20),
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: isCorrectSelection
-                              ? Colors.green.withOpacity(0.1)
-                              : Colors.red.withOpacity(0.1),
+                          color: isCorrectSelection ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(AppRadius.medium),
                         ),
                         child: Row(
                           children: [
-                            Text(
-                              isCorrectSelection ? "🎉" : "❌",
-                              style: const TextStyle(fontSize: 20),
-                            ),
+                            Text(isCorrectSelection ? "🎉" : "❌", style: const TextStyle(fontSize: 20)),
                             const SizedBox(width: 12),
                             Text(
                               isCorrectSelection ? "Correct!" : "Nice try!",
                               style: GoogleFonts.inter(
                                 fontWeight: FontWeight.w700,
                                 fontSize: 16,
-                                color: isCorrectSelection
-                                    ? Colors.green.shade800
-                                    : Colors.red.shade800,
+                                color: isCorrectSelection ? Colors.green.shade800 : Colors.red.shade800,
                               ),
                             ),
                           ],
@@ -325,16 +309,12 @@ class _EmojiGuessScreenState extends State<EmojiGuessScreen> {
                       )
                     : const SizedBox.shrink(),
               ),
-
-              // Bottom Dynamic Submission/Next Button
               SizedBox(
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _selectedIndex == null 
-                        ? Colors.grey.shade400 
-                        : AppColors.primary,
+                    backgroundColor: _selectedIndex == null ? Colors.grey.shade400 : AppColors.primary,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(AppRadius.medium),
@@ -360,7 +340,6 @@ class _EmojiGuessScreenState extends State<EmojiGuessScreen> {
     );
   }
 
-  // Extracted Game Over Screen View
   Widget _buildGameOverView() {
     final double standardPercent = _items.isEmpty ? 0 : (_score / _items.length);
     
@@ -375,10 +354,7 @@ class _EmojiGuessScreenState extends State<EmojiGuessScreen> {
             children: [
               const Spacer(),
               const Center(
-                child: Text(
-                  "🏁",
-                  style: TextStyle(fontSize: 80),
-                ),
+                child: Text("🏁", style: TextStyle(fontSize: 80)),
               ),
               const SizedBox(height: 24),
               Text(
@@ -402,8 +378,6 @@ class _EmojiGuessScreenState extends State<EmojiGuessScreen> {
                 ),
               ),
               const SizedBox(height: 40),
-              
-              // Score breakdown display panel
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
@@ -461,8 +435,6 @@ class _EmojiGuessScreenState extends State<EmojiGuessScreen> {
                 ),
               ),
               const Spacer(),
-
-              // Game Over Control Buttons
               SizedBox(
                 height: 56,
                 child: ElevatedButton(
@@ -499,7 +471,6 @@ class _EmojiGuessScreenState extends State<EmojiGuessScreen> {
                     ),
                   ),
                   onPressed: () {
-                    // Pops back to the dashboard/BrainBreakScreen index view
                     Navigator.pop(context);
                   },
                   child: Text(

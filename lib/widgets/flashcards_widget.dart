@@ -6,9 +6,9 @@ import '../services/api_service.dart';
 
 class FlashcardsWidget extends StatefulWidget {
   final String topic;
-  final String? pdfContext;
+  final String? documentName;
 
-  const FlashcardsWidget({super.key, required this.topic, this.pdfContext});
+  const FlashcardsWidget({super.key, required this.topic, this.documentName});
 
   @override
   State<FlashcardsWidget> createState() => _FlashcardsWidgetState();
@@ -29,7 +29,7 @@ class _FlashcardsWidgetState extends State<FlashcardsWidget> {
   Future<void> _load() async {
     setState(() { _loading = true; _error = null; _current = 0; });
     try {
-      final cards = await ApiService.generateFlashcards(widget.topic, pdfContext: widget.pdfContext);
+      final cards = await ApiService.generateFlashcards(widget.topic, documentName: widget.documentName);
       setState(() { _cards = cards; _loading = false; });
     } catch (_) {
       setState(() { _error = 'Failed to generate flashcards.'; _loading = false; });

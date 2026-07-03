@@ -88,7 +88,7 @@ class _SummaryWidgetState extends State<SummaryWidget> {
   }
 }
 
-// ── Examples Widget ───────────────────────────────────────────────────────
+// ── Examples Widget 
 
 class ExamplesWidget extends StatefulWidget {
   final String topic;

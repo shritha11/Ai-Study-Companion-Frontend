@@ -1,0 +1,24 @@
+{
+  "items": [
+    {
+      "optionA": "Have the ability to fly but only at a walking pace",
+      "optionB": "Have the ability to teleport but only to places you've already been"
+    },
+    {
+      "optionA": "Always be 15 minutes late to every appointment",
+      "optionB": "Always be 25 minutes early to every appointment"
+    },
+    {
+      "optionA": "Lose the ability to speak for an entire year",
+      "optionB": "Have to type out every sentence you say on a keyboard out loud"
+    },
+    {
+      "optionA": "Be an expert at playing every musical instrument",
+      "optionB": "Speak every fluent human language perfectly"
+    },
+    {
+      "optionA": "Live without internet connection for a month",
+      "optionB": "Live without a car or public transit access for a month"
+    }
+  ]
+}
