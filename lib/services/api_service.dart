@@ -19,9 +19,15 @@ class ApiService {
 
   static Future<Map<String,dynamic>?> uploadPdf() async {
     final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom, 
-      allowedExtensions: ['pdf'],
-    );
+  type: FileType.custom,
+  allowedExtensions: [
+    'pdf',
+    'docx',
+    'pptx',
+    'txt',
+    'md',
+  ],
+);
     if (result == null) {
       return null;
     }

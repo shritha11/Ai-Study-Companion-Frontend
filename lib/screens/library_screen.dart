@@ -54,7 +54,7 @@ class LibraryScreen extends StatelessWidget {
                         const SizedBox(width: 14),
                         const Expanded(
                           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                            Text('Upload PDF', style: TextStyle(color: AppColors.primary, fontSize: 15, fontWeight: FontWeight.w600)),
+                            Text('Import Notes', style: TextStyle(color: AppColors.primary, fontSize: 15, fontWeight: FontWeight.w600)),
                             Text('Tap to add your notes', style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
                           ]),
                         ),

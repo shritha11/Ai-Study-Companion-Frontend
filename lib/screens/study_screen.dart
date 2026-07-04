@@ -155,7 +155,7 @@ class _StudyScreenState extends State<StudyScreen> {
         const Icon(Icons.picture_as_pdf_rounded, color: AppColors.primary, size: 16),
         const SizedBox(width: 8),
         Expanded(
-          child: Text('$_pdfName · AI will answer from this PDF',
+          child: Text('$_pdfName · AI will answer from this.',
               style: const TextStyle(color: AppColors.primary, fontSize: 12, fontWeight: FontWeight.w500)),
         ),
         GestureDetector(
