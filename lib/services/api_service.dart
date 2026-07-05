@@ -21,6 +21,18 @@ class ApiService {
     );
   }
 
+  static Future<void> deleteDocument(
+    String documentName,
+  ) async {
+    final response = await http.delete(
+      Uri.parse("$_base/documents/$documentName"),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception("Failed to delete");
+    }
+  }
+
   static Future<Map<String,dynamic>?> uploadPdf() async {
     final result = await FilePicker.platform.pickFiles(
   type: FileType.custom,

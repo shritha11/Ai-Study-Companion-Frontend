@@ -29,6 +29,79 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
     await _documents;
   }
+
+  void _showMenu(DocumentModel item) {
+  showModalBottomSheet(
+    context: context,
+    builder: (_) {
+      return SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.edit),
+              title: const Text("Rename"),
+              onTap: () {
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(
+                Icons.delete,
+                color: Colors.red,
+              ),
+              title: const Text("Delete"),
+              onTap: () async {
+                Navigator.pop(context);
+
+                final confirm = await showDialog<bool>(
+                  context: context,
+                  builder: (_) => AlertDialog(
+                    backgroundColor: AppColors.card,
+                    title: const Text("Delete document?", 
+                    style: TextStyle(
+                          color: AppColors.textPrimary, 
+                          fontWeight: FontWeight.bold,
+                        ),
+                    ),
+                    content: Text(
+                      "Delete ${item.originalFilename}?",
+                      style: const TextStyle(
+                          color: AppColors.textSecondary, 
+                        ),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: const Text("Cancel", 
+                        style: TextStyle(color: AppColors.textMuted),
+                        ),
+                      ),
+                      FilledButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        style: FilledButton.styleFrom(
+                            backgroundColor: Colors.red, 
+                          ),
+                        child: const Text("Delete"),
+                      ),
+                    ],
+                  ),
+                );
+
+                if (confirm == true) {
+                  await ApiService.deleteDocument(
+                    item.documentName,
+                  );
+
+                  await _refresh();
+                }
+              },
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
  
   @override
   Widget build(BuildContext context) {
@@ -182,7 +255,16 @@ class _LibraryScreenState extends State<LibraryScreen> {
                                   style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
                             ]),
                           ),
-                          const Icon(Icons.more_vert_rounded, color: AppColors.textMuted, size: 18),
+                          IconButton(
+                         icon: const Icon(
+                          Icons.more_vert_rounded,
+                          color: AppColors.textMuted,
+                          size: 18,
+                        ),
+                        onPressed: () {
+                        _showMenu(item);
+                       },
+                      )
                         ]),
                       ),
                     ),
@@ -201,3 +283,4 @@ class _LibraryScreenState extends State<LibraryScreen> {
     );
   }
 }
+
