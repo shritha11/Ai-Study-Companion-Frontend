@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/message_model.dart';
+import '../models/document_model.dart';
 import 'package:file_picker/file_picker.dart';
 
 class ApiService {
@@ -47,6 +48,20 @@ class ApiService {
       throw Exception("Upload failed");
     }
     return jsonDecode(response.body);
+  }
+
+  static Future<List<DocumentModel>> getDocuments() async {
+    final response = await http.get(
+      Uri.parse("$_base/documents"),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception("Failed to load documents");
+    }
+
+    final List data = jsonDecode(response.body);
+
+    return data.map((e) => DocumentModel.fromJson(e)).toList();
   }
 
   // Quiz generation

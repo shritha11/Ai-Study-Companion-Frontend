@@ -1,23 +1,61 @@
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
+import '../models/document_model.dart';
+import '../services/api_service.dart';
  
 // ── Library Screen 
  
-class LibraryScreen extends StatelessWidget {
+class LibraryScreen extends StatefulWidget {
   const LibraryScreen({super.key});
+
+  @override
+  State<LibraryScreen> createState() => _LibraryScreenState();
+}
+
+class _LibraryScreenState extends State<LibraryScreen> {
+  late Future<List<DocumentModel>> _documents;
+
+  @override
+  void initState() {
+    super.initState();
+    _documents = ApiService.getDocuments();
+  }
+
+  Future<void> _refresh() async {
+    setState(() {
+      _documents = ApiService.getDocuments();
+    });
+
+    await _documents;
+  }
  
   @override
   Widget build(BuildContext context) {
-    final items = [
-      {'title': 'DSA Notes', 'size': '2.4 MB', 'date': 'Today', 'icon': Icons.picture_as_pdf_rounded, 'color': AppColors.error},
-      {'title': 'DBMS Slides', 'size': '5.1 MB', 'date': 'Yesterday', 'icon': Icons.picture_as_pdf_rounded, 'color': AppColors.warning},
-      {'title': 'OS Concepts', 'size': '1.8 MB', 'date': '3 days ago', 'icon': Icons.picture_as_pdf_rounded, 'color': AppColors.blue},
-    ];
  
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: CustomScrollView(
+        child: RefreshIndicator(
+          onRefresh: _refresh, 
+          child: FutureBuilder<List<DocumentModel>>(
+  future: _documents,
+  builder: (context, snapshot) {
+
+    if (snapshot.connectionState == ConnectionState.waiting) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
+    if (snapshot.hasError) {
+      return Center(
+        child: Text(snapshot.error.toString()),
+      );
+    }
+
+    final items = snapshot.data ?? [];
+
+    return CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
             SliverToBoxAdapter(
@@ -90,19 +128,19 @@ class LibraryScreen extends StatelessWidget {
                           Container(
                             width: 42, height: 42,
                             decoration: BoxDecoration(
-                              color: (item['color'] as Color).withOpacity(0.1),
+                              color: AppColors.primary.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: Icon(item['icon'] as IconData, color: item['color'] as Color, size: 20),
+                            child: const Icon(Icons.description_rounded, color: AppColors.primary, size: 20),
                           ),
                           const SizedBox(width: 14),
                           Expanded(
                             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                              Text(item['title'] as String,
+                              Text(item.originalFilename,
                                   style: const TextStyle(
                                       color: AppColors.textPrimary, fontSize: 14, fontWeight: FontWeight.w600)),
                               const SizedBox(height: 3),
-                              Text('${item['size']} · ${item['date']}',
+                              Text('${item.totalChunks} chunks · ${item.uploadedAt.substring(0, 10)}',
                                   style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
                             ]),
                           ),
@@ -117,8 +155,11 @@ class LibraryScreen extends StatelessWidget {
             ),
             const SliverToBoxAdapter(child: SizedBox(height: 40)),
           ],
-        ),
-      ),
+        );
+      },
+    ),
+  ),
+),
     );
   }
 }
