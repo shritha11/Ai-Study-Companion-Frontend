@@ -33,6 +33,26 @@ class ApiService {
     }
   }
 
+  static Future<void> renameDocument(
+  String documentName,
+  String newName,
+) async {
+
+  final response = await http.put(
+    Uri.parse("$_base/documents/$documentName"),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: jsonEncode({
+      "new_name": newName,
+    }),
+  );
+
+  if (response.statusCode != 200) {
+    throw Exception("Rename failed");
+  }
+}
+
   static Future<Map<String,dynamic>?> uploadPdf() async {
     final result = await FilePicker.platform.pickFiles(
   type: FileType.custom,

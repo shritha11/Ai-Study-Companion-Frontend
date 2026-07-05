@@ -15,6 +15,7 @@ class LibraryScreen extends StatefulWidget {
 
 class _LibraryScreenState extends State<LibraryScreen> {
   late Future<List<DocumentModel>> _documents;
+  String _search = "";
 
   @override
   void initState() {
@@ -40,9 +41,67 @@ class _LibraryScreenState extends State<LibraryScreen> {
             ListTile(
               leading: const Icon(Icons.edit),
               title: const Text("Rename"),
-              onTap: () {
-                Navigator.pop(context);
-              },
+              onTap: () async {
+
+  Navigator.pop(context);
+
+  final controller = TextEditingController(
+    text: item.originalFilename,
+  );
+
+  final newName = await showDialog<String>(
+    context: context,
+    builder: (_) => AlertDialog(
+      backgroundColor: AppColors.card,
+      title: const Text("Rename document",
+      style: TextStyle(
+        color: AppColors.textPrimary, 
+        fontWeight: FontWeight.bold,
+       ),
+      ),
+      content: TextField(
+        controller: controller,
+        style: const TextStyle(
+          color: AppColors.textPrimary, 
+       ),
+       decoration: const InputDecoration(
+         enabledBorder: UnderlineInputBorder(
+        borderSide: BorderSide(color: AppColors.border),
+       ),
+      focusedBorder: UnderlineInputBorder(
+      borderSide: BorderSide(color: AppColors.primary),
+       ),
+       ),
+      ),
+      
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text("Cancel"),
+        ),
+        FilledButton(
+          onPressed: () {
+            Navigator.pop(
+              context,
+              controller.text.trim(),
+            );
+          },
+          child: const Text("Save"),
+        ),
+      ],
+    ),
+  );
+
+  if (newName != null && newName.isNotEmpty) {
+
+    await ApiService.renameDocument(
+      item.documentName,
+      newName,
+    );
+
+    await _refresh();
+  }
+},
             ),
             ListTile(
               leading: const Icon(
@@ -128,6 +187,9 @@ class _LibraryScreenState extends State<LibraryScreen> {
     }
 
     final items = snapshot.data ?? [];
+    final filtered = items.where((doc) {
+      return doc.originalFilename.toLowerCase().contains(_search.toLowerCase());
+    }).toList();
 
     return CustomScrollView(
           physics: const BouncingScrollPhysics(),
@@ -200,6 +262,23 @@ class _LibraryScreenState extends State<LibraryScreen> {
                       ]),
                     ),
                   ),
+                  const SizedBox(height: 8), 
+                  TextField(
+  onChanged: (value) {
+    setState(() {
+      _search = value;
+    });
+  },
+  style: const TextStyle(
+  color: AppColors.textPrimary, 
+  ),
+  decoration: const InputDecoration(
+    hintText: "Search documents...",
+    hintStyle: TextStyle(color: AppColors.textMuted),
+    prefixIcon: Icon(Icons.search),
+    prefixIconColor: AppColors.textMuted,
+  ),
+),
                   const SizedBox(height: 28),
                   const Text('YOUR FILES',
                       style: TextStyle(
@@ -211,7 +290,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
             SliverList(
               delegate: SliverChildBuilderDelegate(
                 (_, i) {
-                  final item = items[i];
+                  final item = filtered[i];
                   return Padding(
                     padding: const EdgeInsets.fromLTRB(24, 0, 24, 10),
                     child: InkWell(
@@ -270,7 +349,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                     ),
                   );
                 },
-                childCount: items.length,
+                childCount: filtered.length,
               ),
             ),
             const SliverToBoxAdapter(child: SizedBox(height: 40)),
