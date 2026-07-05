@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 import '../models/document_model.dart';
 import '../services/api_service.dart';
+import 'study_screen.dart';
  
 // ── Library Screen 
  
@@ -71,7 +72,33 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   const SizedBox(height: 24),
                   // Upload button
                   InkWell(
-                    onTap: () {},
+                    onTap: () async {
+                      try {
+                        final result = await ApiService.uploadPdf();
+
+                        if (result != null) {
+                          await _refresh();
+
+                          if (!mounted) return;
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                '${result["original_filename"]} uploaded successfully',
+                              ),
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        if (!mounted) return;
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(e.toString()),
+                          ),
+                        );
+                      }
+                    },
                     borderRadius: BorderRadius.circular(16),
                     child: Ink(
                       padding: const EdgeInsets.all(18),
@@ -115,7 +142,18 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   return Padding(
                     padding: const EdgeInsets.fromLTRB(24, 0, 24, 10),
                     child: InkWell(
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                          context, 
+                          MaterialPageRoute(
+                            builder: (_) => StudyScreen(
+                              documentName: item.documentName, 
+                              pdfName: item.originalFilename,
+                            )
+                          ),
+                        );
+                      }
+                      ,
                       borderRadius: BorderRadius.circular(16),
                       child: Ink(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),

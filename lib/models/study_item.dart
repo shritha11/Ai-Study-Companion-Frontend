@@ -3,7 +3,7 @@ import 'message_model.dart';
 enum StudyItemType {
   message,
   quiz,
- flashcards,
+  flashcards,
   summary,
   examples,
   coding,

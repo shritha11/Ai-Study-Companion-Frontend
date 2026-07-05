@@ -2,20 +2,23 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/message_model.dart';
 import '../models/document_model.dart';
+import '../models/chat_response.dart';
 import 'package:file_picker/file_picker.dart';
 
 class ApiService {
   static const _base = 'http://127.0.0.1:8000';
 
   // Chat — plain question or with PDF context
-  static Future<String> chat(String message, {String? documentName}) async {
+  static Future<ChatResponse> chat(String message, {String? documentName}) async {
     final res = await http.post(
       Uri.parse('$_base/chat'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'message': message, 'document_name': documentName}),
     );
     if (res.statusCode != 200) throw Exception('Chat failed');
-    return jsonDecode(res.body)['response'] as String;
+    return ChatResponse.fromJson(
+      jsonDecode(res.body),
+    );
   }
 
   static Future<Map<String,dynamic>?> uploadPdf() async {

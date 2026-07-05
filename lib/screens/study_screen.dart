@@ -7,9 +7,21 @@ import '../widgets/chat_input.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/message_bubble.dart';
 import '../widgets/typing_indicator.dart';
+import '../models/chat_response.dart';
+import '../models/study_item.dart';
+import '../widgets/quiz_widget.dart';
+import '../widgets/flashcards_widget.dart';
+import '../widgets/summary_widget.dart';
 
 class StudyScreen extends StatefulWidget {
-  const StudyScreen({super.key});
+  final String? documentName;
+  final String? pdfName;
+
+  const StudyScreen({
+    super.key, 
+    this.documentName, 
+    this.pdfName, 
+  });
 
   @override
   State<StudyScreen> createState() => _StudyScreenState();
@@ -18,10 +30,17 @@ class StudyScreen extends StatefulWidget {
 class _StudyScreenState extends State<StudyScreen> {
   final _controller = TextEditingController();
   final _scroll = ScrollController();
-  final List<MessageModel> _messages = [];
+  final List<StudyItem> _timeline = [];
   bool _isTyping = false;
   String? _documentName;
   String? _pdfName;
+
+  @override
+  void initState() {
+    super.initState();
+    _documentName = widget.documentName;
+    _pdfName = widget.pdfName;
+  }
 
   @override
   void dispose() {
@@ -48,28 +67,72 @@ class _StudyScreenState extends State<StudyScreen> {
     _controller.clear();
 
     setState(() {
-      _messages.add(MessageModel(text: msg, isUser: true));
+      _timeline.add(StudyItem.message(MessageModel(text: msg, isUser: true)));
       _isTyping = true;
     });
     _scrollBottom();
 
     try {
       final response = await ApiService.chat(msg, documentName: _documentName);
-      final title = LearningHelper.getTitle(msg);
+      debugPrint("TYPE: ${response.type}");
+      debugPrint("TOPIC: ${response.topic}");
+
       setState(() {
-        _messages.add(MessageModel(
-          text: response,
+        if (response.type == "chat") {
+          _timeline.add(StudyItem.message(
+            MessageModel(
+          text: response.response ?? "",
           isUser: false,
-          learningTitle: title,
-        ));
+          learningTitle: response.learningTitle,
+        )));
+        }
+        else if(response.type == "quiz") {
+          _timeline.add(StudyItem.quiz(topic: response.topic!, documentName: _documentName));
+        }
+
+        else if(response.type == "summary") {
+          _timeline.add(
+            StudyItem.summary(
+              topic: response.topic!, 
+              documentName: _documentName,
+            )
+          );
+        }
+
+        else if (response.type == "examples") {
+          _timeline.add(
+            StudyItem.examples(
+              topic: response.topic!, 
+              documentName: _documentName,
+            )
+          );
+        }
+
+        else if(response.type == "coding") {
+          _timeline.add(
+            StudyItem.coding(
+              topic: response.topic!, 
+              documentName: _documentName,
+            )
+          );
+        }
+
+        else if(response.type == "flashcards") {
+          _timeline.add(
+            StudyItem.flashcards(
+              topic: response.topic!, 
+              documentName: _documentName,
+            )
+          );
+        }
         _isTyping = false;
       });
     } catch (_) {
       setState(() {
-        _messages.add(MessageModel(
+        _timeline.add(StudyItem.message(MessageModel(
           text: 'Something went wrong. Please try again.',
           isUser: false,
-        ));
+        )));
         _isTyping = false;
       });
     }
@@ -107,7 +170,7 @@ class _StudyScreenState extends State<StudyScreen> {
         children: [
           if (_pdfName != null) _pdfBanner(),
           Expanded(
-            child: _messages.isEmpty
+            child: _timeline.isEmpty
                 ? EmptyState(onChipTap: _send)
                 : _buildTimeline(),
           ),
@@ -170,14 +233,55 @@ class _StudyScreenState extends State<StudyScreen> {
     return ListView.builder(
       controller: _scroll,
       padding: const EdgeInsets.symmetric(vertical: 12),
-      itemCount: _messages.length,
+      itemCount: _timeline.length,
       itemBuilder: (_, i) {
-        final message = _messages[i];
+        final item = _timeline[i];
+        Widget child = const SizedBox();
+        switch (item.type) {
+          case StudyItemType.message:
+          child = MessageBubble(
+            message: item.message!,
+          );
+          break;
+
+          case StudyItemType.quiz:
+          child = QuizWidget(
+            topic: item.topic!, 
+            documentName: item.documentName,
+          );
+          break;
+
+          case StudyItemType.flashcards:
+          child = FlashcardsWidget(
+            topic: item.topic!, 
+            documentName: item.documentName,
+          );
+          break;
+
+          case StudyItemType.coding:
+             child = CodingWidget(
+             topic: item.topic!,
+             documentName: item.documentName,
+          );
+          break;
+
+          case StudyItemType.summary:
+            child = SummaryWidget(
+              topic: item.topic!,
+              documentName: item.documentName,
+            );
+            break;
+
+          case StudyItemType.examples:
+          child = ExamplesWidget(
+            topic: item.topic!,
+            documentName: item.documentName,
+          );
+          break;
+        }
         return _TimelineItemWrapper(
           key: ValueKey(i),
-          child: MessageBubble(
-            message: message, 
-          ),
+          child: child, 
         );
       },
     );
@@ -202,6 +306,7 @@ class _TimelineItemWrapperState extends State<_TimelineItemWrapper>
   @override
   void initState() {
     super.initState();
+
     _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 350));
     _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
     _slide = Tween<Offset>(begin: const Offset(0, 0.06), end: Offset.zero)

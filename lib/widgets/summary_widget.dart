@@ -6,7 +6,8 @@ import '../services/api_service.dart';
 
 class SummaryWidget extends StatefulWidget {
   final String topic;
-  const SummaryWidget({super.key, required this.topic});
+  final String? documentName;
+  const SummaryWidget({super.key, required this.topic, this.documentName});
 
   @override
   State<SummaryWidget> createState() => _SummaryWidgetState();
@@ -25,9 +26,11 @@ class _SummaryWidgetState extends State<SummaryWidget> {
 
   Future<void> _load() async {
     try {
-      final text = await ApiService.chat(
-          'Give me a concise bullet-point summary of: ${widget.topic}. Use • for each point. Max 6 points.');
-      setState(() { _summary = text; _loading = false; });
+      final response = await ApiService.chat(
+          'Give me a concise bullet-point summary of: ${widget.topic}. Use • for each point. Max 6 points.', 
+          documentName: widget.documentName,
+          );
+      setState(() { _summary = response.response; _loading = false; });
     } catch (_) {
       setState(() { _summary = 'Failed to load summary.'; _loading = false; });
     }
@@ -92,7 +95,8 @@ class _SummaryWidgetState extends State<SummaryWidget> {
 
 class ExamplesWidget extends StatefulWidget {
   final String topic;
-  const ExamplesWidget({super.key, required this.topic});
+  final String? documentName;
+  const ExamplesWidget({super.key, required this.topic, this.documentName});
 
   @override
   State<ExamplesWidget> createState() => _ExamplesWidgetState();
@@ -110,9 +114,10 @@ class _ExamplesWidgetState extends State<ExamplesWidget> {
 
   Future<void> _load() async {
     try {
-      final text = await ApiService.chat(
-          'Give me 4 real-world practical examples of: ${widget.topic}. Number them 1-4. Keep each example concise and clear.');
-      setState(() { _content = text; _loading = false; });
+      final response = await ApiService.chat(
+          'Give me 4 real-world practical examples of: ${widget.topic}. Number them 1-4. Keep each example concise and clear.', 
+          documentName: widget.documentName);
+      setState(() { _content = response.response; _loading = false; });
     } catch (_) {
       setState(() { _content = 'Failed to load examples.'; _loading = false; });
     }
@@ -159,11 +164,12 @@ class _ExamplesWidgetState extends State<ExamplesWidget> {
   }
 }
 
-// ── Coding Widget ─────────────────────────────────────────────────────────
+// ── Coding Widget
 
 class CodingWidget extends StatefulWidget {
   final String topic;
-  const CodingWidget({super.key, required this.topic});
+  final String? documentName;
+  const CodingWidget({super.key, required this.topic, this.documentName});
 
   @override
   State<CodingWidget> createState() => _CodingWidgetState();
@@ -184,14 +190,16 @@ class _CodingWidgetState extends State<CodingWidget> {
   Future<void> _load() async {
     setState(() { _loading = true; _showHint = false; _showSolution = false; });
     try {
-      final text = await ApiService.chat(
+      final response = await ApiService.chat(
           'Give me a coding challenge on: ${widget.topic}. Format your response exactly like this:\n'
           'DIFFICULTY: Easy/Medium/Hard\n'
           'PROBLEM: [problem statement]\n'
           'CONSTRAINTS: [constraints]\n'
           'HINT: [one helpful hint]\n'
-          'SOLUTION: [code solution]');
-      setState(() { _challenge = _parse(text); _loading = false; });
+          'SOLUTION: [code solution]', 
+          documentName: widget.documentName,
+          );
+      setState(() { _challenge = _parse(response.response ?? ""); _loading = false; });
     } catch (_) {
       setState(() { _loading = false; });
     }
