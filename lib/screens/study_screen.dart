@@ -14,11 +14,13 @@ import '../widgets/flashcards_widget.dart';
 import '../widgets/summary_widget.dart';
 
 class StudyScreen extends StatefulWidget {
+  final String sessionId;
   final String? documentName;
   final String? pdfName;
 
   const StudyScreen({
     super.key, 
+    required this.sessionId,
     this.documentName, 
     this.pdfName, 
   });
@@ -34,12 +36,18 @@ class _StudyScreenState extends State<StudyScreen> {
   bool _isTyping = false;
   String? _documentName;
   String? _pdfName;
+  late String _sessionId;
 
   @override
   void initState() {
     super.initState();
+    _sessionId = widget.sessionId;
     _documentName = widget.documentName;
     _pdfName = widget.pdfName;
+
+    if (_sessionId.isNotEmpty) {
+      _loadMessages();
+    }
   }
 
   @override
@@ -73,7 +81,7 @@ class _StudyScreenState extends State<StudyScreen> {
     _scrollBottom();
 
     try {
-      final response = await ApiService.chat(msg, documentName: _documentName);
+      final response = await ApiService.chat(msg, documentName: _documentName, sessionId: _sessionId);
       debugPrint("TYPE: ${response.type}");
       debugPrint("TOPIC: ${response.topic}");
 
@@ -160,6 +168,31 @@ class _StudyScreenState extends State<StudyScreen> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     ));
   }
+
+  Future<void> _loadMessages() async {
+  print("Loading $_sessionId");
+  final messages =
+      await ApiService.getMessages(_sessionId);
+
+  print(messages);
+
+  setState(() {
+    _timeline.clear();
+
+    for (final message in messages) {
+      _timeline.add(
+        StudyItem.message(
+          MessageModel(
+            text: message["content"],
+            isUser: message["role"] == "user",
+          ),
+        ),
+      );
+    }
+  });
+
+  _scrollBottom();
+}
 
   @override
   Widget build(BuildContext context) {

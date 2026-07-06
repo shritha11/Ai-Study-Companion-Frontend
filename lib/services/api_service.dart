@@ -3,17 +3,18 @@ import 'package:http/http.dart' as http;
 import '../models/message_model.dart';
 import '../models/document_model.dart';
 import '../models/chat_response.dart';
+import '../models/session_model.dart';
 import 'package:file_picker/file_picker.dart';
 
 class ApiService {
   static const _base = 'http://127.0.0.1:8000';
 
   // Chat — plain question or with PDF context
-  static Future<ChatResponse> chat(String message, {String? documentName}) async {
+  static Future<ChatResponse> chat(String message, {String? documentName, String? sessionId}) async {
     final res = await http.post(
       Uri.parse('$_base/chat'),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'message': message, 'document_name': documentName}),
+      body: jsonEncode({'message': message, 'document_name': documentName, "session_id": sessionId}),
     );
     if (res.statusCode != 200) throw Exception('Chat failed');
     return ChatResponse.fromJson(
@@ -31,6 +32,51 @@ class ApiService {
     if (response.statusCode != 200) {
       throw Exception("Failed to delete");
     }
+  }
+
+  static Future<List<dynamic>> getMessages(
+  String sessionId,
+) async {
+  final response = await http.get(
+    Uri.parse("$_base/sessions/$sessionId/messages"),
+  );
+
+  return jsonDecode(response.body);
+}
+
+  static Future<SessionModel> createSession(
+    String? documentName,
+  ) async {
+    final response = await http.post(
+      Uri.parse("$_base/sessions"),
+      headers: {
+        "Content-Type": "application/json",
+      }, 
+      body: jsonEncode({
+        "document_name": documentName,
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception("Failed to create session");
+    }
+
+    return SessionModel.fromJson(
+      jsonDecode(response.body),
+    );
+  }
+
+  static Future<SessionModel?> getSession(String documentName) async {
+    final response = await http.get(Uri.parse("$_base/sessions/$documentName"), 
+    );
+    final data = jsonDecode(response.body);
+    if (!data["exists"]) {
+      return null;
+    }
+
+    return SessionModel.fromJson(
+      data["session"],
+    );
   }
 
   static Future<void> renameDocument(

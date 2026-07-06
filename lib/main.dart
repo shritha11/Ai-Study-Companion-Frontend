@@ -41,7 +41,9 @@ class _RootScreenState extends State<RootScreen> {
 
     HomeScreen(),
 
-    StudyScreen(),
+    StudyScreen(
+      sessionId: "general",
+    ),
 
     LibraryScreen(),
 

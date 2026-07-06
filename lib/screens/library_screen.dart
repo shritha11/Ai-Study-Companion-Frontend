@@ -39,6 +39,61 @@ class _LibraryScreenState extends State<LibraryScreen> {
         child: Wrap(
           children: [
             ListTile(
+  leading: const Icon(Icons.history),
+  title: const Text("Open Existing Study Session"),
+  onTap: () async {
+    Navigator.pop(context);
+
+    final session = await ApiService.getSession(
+      item.documentName,
+    );
+
+    if (session == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("No previous study session found."),
+        ),
+      );
+      return;
+    }
+
+    print("SESSION ID = ${session?.id}");
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => StudyScreen(
+          sessionId: session.id,
+          documentName: item.documentName,
+          pdfName: item.originalFilename,
+        ),
+      ),
+    );
+  },
+),
+ListTile(
+  leading: const Icon(Icons.add_circle_outline),
+  title: const Text("New Study Session"),
+  onTap: () async {
+    Navigator.pop(context);
+
+    final session = await ApiService.createSession(
+      item.documentName,
+    );
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => StudyScreen(
+          sessionId: session.id,
+          documentName: item.documentName,
+          pdfName: item.originalFilename,
+        ),
+      ),
+    );
+  },
+),
+            ListTile(
               leading: const Icon(Icons.edit),
               title: const Text("Rename"),
               onTap: () async {
@@ -294,11 +349,15 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   return Padding(
                     padding: const EdgeInsets.fromLTRB(24, 0, 24, 10),
                     child: InkWell(
-                      onTap: () {
+                      onTap: () async {
+                        final session = await ApiService.createSession(
+                          item.documentName,
+                        );
                         Navigator.push(
                           context, 
                           MaterialPageRoute(
                             builder: (_) => StudyScreen(
+                              sessionId: session.id,
                               documentName: item.documentName, 
                               pdfName: item.originalFilename,
                             )
