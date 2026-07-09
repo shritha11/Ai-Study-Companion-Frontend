@@ -45,16 +45,27 @@ class _StudyScreenState extends State<StudyScreen> {
     _documentName = widget.documentName;
     _pdfName = widget.pdfName;
 
-    if (_sessionId.isNotEmpty) {
-      _loadMessages();
+    _initializeSession();
     }
-  }
 
   @override
   void dispose() {
     _controller.dispose();
     _scroll.dispose();
     super.dispose();
+  }
+
+  Future<void> _initializeSession() async {
+    if (_sessionId.isNotEmpty) {
+      await _loadMessages();
+      return;
+    }
+
+    final session = await ApiService.createSession(
+      _documentName,
+    );
+
+    _sessionId = session.id;
   }
 
   void _scrollBottom() {
