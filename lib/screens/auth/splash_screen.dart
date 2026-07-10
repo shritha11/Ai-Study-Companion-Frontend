@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
-import '../login_screen.dart';
+import 'login_screen.dart';
 import '../../main.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -24,7 +24,7 @@ class _SplashScreenState extends State<SplashScreen> {
         Navigator.pushReplacement(
             context, 
             MaterialPageRoute(
-                builder: (_) => loggedIn ? const RootScreen() : const LoginScreen(),
+                builder: (_) => loggedIn ? const RootScreen() : LoginScreen(),
             ),
         );
     }

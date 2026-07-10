@@ -21,7 +21,7 @@ void main() {
       ], 
       child: const EunoiaApp(),
     )
-  )
+  );
 }
 
 class EunoiaApp extends StatelessWidget {

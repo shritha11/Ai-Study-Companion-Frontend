@@ -1,6 +1,6 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:convert';
-import 'package:http/http.dart';
+import 'package:http/http.dart' as http;
 import '../models/auth_response.dart';
 
 class AuthService {
@@ -12,7 +12,7 @@ class AuthService {
         required String password,
     }) async {
         final response = await http.post(
-            Uri.parse("_base/login"),
+            Uri.parse("$_base/login"),
             headers: {
                 "Content-Type": "application/json",
             },
@@ -58,7 +58,7 @@ class AuthService {
             throw Exception("Signup failed");
         }
 
-        final data = jsonEncode(response.body);
+        final data = jsonDecode(response.body);
 
         await storage.write(
             key: "token",
@@ -68,7 +68,7 @@ class AuthService {
         return AuthResponse.fromJson(data);
     }
 
-    static Future<String> getToken() async {
+    static Future<String?> getToken() async {
         return await storage.read(key: "token");
     }
 

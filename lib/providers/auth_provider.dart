@@ -5,7 +5,6 @@ import '../services/auth_service.dart';
 class AuthProvider extends ChangeNotifier {
     UserModel? user;
     bool isLoading = false;
-    bool get isLoading => user != null;
     Future<void> login({
         required String email,
         required String password,
