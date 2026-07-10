@@ -35,7 +35,7 @@ class QuickActionGrid extends StatelessWidget {
 
           _largeCard(
             title: "Learn",
-            subtitle: "Ask Lumina anything",
+            subtitle: "Ask Eunoia anything",
             icon: Icons.auto_awesome_rounded,
             onTap: () {},
           ),

@@ -7,21 +7,33 @@ import 'screens/profile_screen.dart';
 import 'screens/study_screen.dart';
 import 'theme/app_theme.dart';
 import 'widgets/lumina_bottom_nav.dart';
+import 'package:provider/provider.dart';
+import 'providers/auth_provider.dart';
+import 'screens/auth/splash_screen.dart';
 
 void main() {
-  runApp(const LuminaApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => AuthProvider(),
+        ),
+      ], 
+      child: const EunoiaApp(),
+    )
+  )
 }
 
-class LuminaApp extends StatelessWidget {
-  const LuminaApp({super.key});
+class EunoiaApp extends StatelessWidget {
+  const EunoiaApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: "Lumina",
+      title: "Eunoia",
       theme: AppTheme.dark,
-      home: const RootScreen(),
+      home: const SplashScreen(),
     );
   }
 }
@@ -38,15 +50,11 @@ class _RootScreenState extends State<RootScreen> {
   int currentIndex = 0;
 
   final List<Widget> screens = const [
-
     HomeScreen(),
-
     StudyScreen(
       sessionId: "",
     ),
-
     LibraryScreen(),
-
     ProfileScreen(),
 
   ];
@@ -55,17 +63,11 @@ class _RootScreenState extends State<RootScreen> {
   Widget build(BuildContext context) {
 
     return Scaffold(
-
       body: AnimatedSwitcher(
-
         duration: const Duration(milliseconds: 300),
-
         child: IndexedStack(
-
           key: ValueKey(currentIndex),
-
           index: currentIndex,
-
           children: screens,
 
         ),
@@ -73,9 +75,7 @@ class _RootScreenState extends State<RootScreen> {
       ),
 
       bottomNavigationBar: LuminaBottomNav(
-
         currentIndex: currentIndex,
-
         onTap: (index){
 
           setState(() {

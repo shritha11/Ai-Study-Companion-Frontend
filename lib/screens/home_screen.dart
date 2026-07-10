@@ -249,7 +249,7 @@ class HomeScreen extends StatelessWidget {
           _largeAction(
             icon: Icons.auto_awesome_rounded,
             title: 'Learn',
-            subtitle: 'Ask Lumina anything',
+            subtitle: 'Ask Eunoia anything',
             color: AppColors.primary,
           ),
           SizedBox(height: AppSpacing.sm),
