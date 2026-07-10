@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
+import 'package:provider/provider.dart';
+
+import '../providers/auth_provider.dart';
+import 'auth/login_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -18,6 +22,7 @@ class ProfileScreen extends StatelessWidget {
       {'icon': Icons.palette_outlined, 'label': 'Appearance', 'color': AppColors.blue},
       {'icon': Icons.lock_outline_rounded, 'label': 'Privacy', 'color': AppColors.success},
       {'icon': Icons.help_outline_rounded, 'label': 'Help & Support', 'color': AppColors.textSecondary},
+      {'icon': Icons.logout_rounded,'label': 'Logout','color': Colors.red},
     ];
  
     return Scaffold(
@@ -87,7 +92,26 @@ class ProfileScreen extends StatelessWidget {
                   return Padding(
                     padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
                     child: InkWell(
-                      onTap: () {},
+                      onTap: () async {
+
+  if ((s['label'] as String) == "Logout") {
+
+    await context.read<AuthProvider>().logout();
+
+    if (!context.mounted) return;
+
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const LoginScreen(),
+      ),
+      (route) => false,
+    );
+
+    return;
+  }
+
+},
                       borderRadius: BorderRadius.circular(16),
                       child: Ink(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
