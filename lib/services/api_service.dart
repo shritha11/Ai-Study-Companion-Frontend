@@ -5,6 +5,7 @@ import '../models/document_model.dart';
 import '../models/chat_response.dart';
 import '../models/session_model.dart';
 import 'package:file_picker/file_picker.dart';
+import 'auth_service.dart';
 
 class ApiService {
   static const _base = 'http://127.0.0.1:8000';
@@ -13,7 +14,7 @@ class ApiService {
   static Future<ChatResponse> chat(String message, {String? documentName, String? sessionId}) async {
     final res = await http.post(
       Uri.parse('$_base/chat'),
-      headers: {'Content-Type': 'application/json'},
+      headers: await AuthService.authHeaders(),
       body: jsonEncode({'message': message, 'document_name': documentName, "session_id": sessionId}),
     );
     if (res.statusCode != 200) throw Exception('Chat failed');
@@ -27,6 +28,7 @@ class ApiService {
   ) async {
     final response = await http.delete(
       Uri.parse("$_base/documents/$documentName"),
+      headers: await AuthService.authHeaders(),
     );
 
     if (response.statusCode != 200) {
@@ -39,6 +41,7 @@ class ApiService {
 ) async {
   final response = await http.get(
     Uri.parse("$_base/sessions/$sessionId/messages"),
+    headers: await AuthService.authHeaders(),
   );
 
   return jsonDecode(response.body);
@@ -49,9 +52,7 @@ class ApiService {
   ) async {
     final response = await http.post(
       Uri.parse("$_base/sessions"),
-      headers: {
-        "Content-Type": "application/json",
-      }, 
+      headers: await AuthService.authHeaders(),
       body: jsonEncode({
         "document_name": documentName,
       }),
@@ -67,7 +68,9 @@ class ApiService {
   }
 
   static Future<SessionModel?> getSession(String documentName) async {
-    final response = await http.get(Uri.parse("$_base/sessions/$documentName"), 
+    final response = await http.get(
+      Uri.parse("$_base/sessions/$documentName"), 
+      headers: await AuthService.authHeaders(),
     );
     final data = jsonDecode(response.body);
     if (!data["exists"]) {
@@ -86,9 +89,7 @@ class ApiService {
 
   final response = await http.put(
     Uri.parse("$_base/documents/$documentName"),
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: await AuthService.authHeaders(),
     body: jsonEncode({
       "new_name": newName,
     }),
@@ -117,6 +118,11 @@ class ApiService {
       'POST', 
       Uri.parse('$_base/upload'),
     );
+
+    request.headers.addAll(
+        await AuthService.authHeaders(),
+      );
+
     request.files.add(
       await http.MultipartFile.fromPath(
         'file', 
@@ -134,6 +140,7 @@ class ApiService {
   static Future<List<DocumentModel>> getDocuments() async {
     final response = await http.get(
       Uri.parse("$_base/documents"),
+      headers: await AuthService.authHeaders(),
     );
 
     if (response.statusCode != 200) {
@@ -149,7 +156,7 @@ class ApiService {
   static Future<List<QuizQuestion>> generateQuiz(String topic, {String? documentName}) async {
     final res = await http.post(
       Uri.parse('$_base/quiz'),
-      headers: {'Content-Type': 'application/json'},
+      headers: await AuthService.authHeaders(),
       body: jsonEncode({'topic': topic, 'document_name': documentName}),
     );
     if (res.statusCode != 200) throw Exception('Quiz generation failed');
@@ -163,7 +170,7 @@ class ApiService {
   static Future<List<Flashcard>> generateFlashcards(String topic, {String? documentName}) async {
     final res = await http.post(
       Uri.parse('$_base/flashcards'),
-      headers: {'Content-Type': 'application/json'},
+      headers: await AuthService.authHeaders(),
       body: jsonEncode({'topic': topic, 'document_name': documentName}),
     );
     if (res.statusCode != 200) throw Exception('Flashcard generation failed');
