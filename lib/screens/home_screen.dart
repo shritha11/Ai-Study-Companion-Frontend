@@ -4,9 +4,39 @@ import '../constants/app_colors.dart';
 import '../constants/app_radius.dart';
 import '../constants/app_spacing.dart';
 import 'brain_break_screen.dart';
+import '../models/user_model.dart';
+import '../services/api_service.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+} 
+class _HomeScreenState extends State<HomeScreen> {
+
+  UserModel? user;
+  bool isLoading = true;
+
+  @override
+void initState() {
+  super.initState();
+  loadUser();
+}
+
+Future<void> loadUser() async {
+  try {
+    user = await ApiService.getCurrentUser();
+  } catch (e) {
+    debugPrint(e.toString());
+  }
+
+  if (mounted) {
+    setState(() {
+      isLoading = false;
+    });
+  }
+}
 
   String get _greeting {
     final h = DateTime.now().hour;
@@ -17,13 +47,20 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+  return const Scaffold(
+    body: Center(
+      child: CircularProgressIndicator(),
+    ),
+  );
+}
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
-            SliverToBoxAdapter(child: _header()),
+            SliverToBoxAdapter(child: _header(user!)),
             SliverToBoxAdapter(child: SizedBox(height: AppSpacing.lg)),
             SliverToBoxAdapter(child: _continueLearning()),
             SliverToBoxAdapter(child: SizedBox(height: AppSpacing.lg)),
@@ -39,42 +76,47 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _header() {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            _greeting,
-            style: GoogleFonts.inter(
-              color: AppColors.textSecondary,
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-            ),
+  Widget _header(UserModel user) {
+  return Padding(
+    padding: EdgeInsets.fromLTRB(
+      AppSpacing.lg,
+      AppSpacing.md,
+      AppSpacing.lg,
+      0,
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          _greeting,
+          style: GoogleFonts.inter(
+            color: AppColors.textSecondary,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
           ),
-          SizedBox(height: AppSpacing.xs),
-          Text(
-            'Shritha 👋',
-            style: GoogleFonts.inter(
-              color: AppColors.textPrimary,
-              fontSize: 32,
-              fontWeight: FontWeight.w700,
-              letterSpacing: -0.5,
-            ),
+        ),
+        SizedBox(height: AppSpacing.xs),
+        Text(
+          '${user.name} ',
+          style: GoogleFonts.inter(
+            color: AppColors.textPrimary,
+            fontSize: 32,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -0.5,
           ),
-          SizedBox(height: AppSpacing.sm),
-          Text(
-            'Continue your learning journey.',
-            style: GoogleFonts.inter(
-              color: AppColors.textMuted,
-              fontSize: 15,
-            ),
+        ),
+        SizedBox(height: AppSpacing.sm),
+        Text(
+          'Continue your learning journey.',
+          style: GoogleFonts.inter(
+            color: AppColors.textMuted,
+            fontSize: 15,
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
 
   Widget _continueLearning() {
     return Padding(

@@ -4,6 +4,7 @@ import '../models/message_model.dart';
 import '../models/document_model.dart';
 import '../models/chat_response.dart';
 import '../models/session_model.dart';
+import '../models/user_model.dart';
 import 'package:file_picker/file_picker.dart';
 import 'auth_service.dart';
 
@@ -98,6 +99,21 @@ class ApiService {
   if (response.statusCode != 200) {
     throw Exception("Rename failed");
   }
+}
+
+static Future<UserModel> getCurrentUser() async {
+  final response = await http.get(
+    Uri.parse("$_base/me"),
+    headers: await AuthService.authHeaders(),
+  );
+
+  print(response.body);
+
+  if (response.statusCode != 200) {
+    throw Exception("Failed to load user");
+  }
+
+  return UserModel.fromJson(jsonDecode(response.body));
 }
 
   static Future<Map<String,dynamic>?> uploadPdf() async {
