@@ -7,6 +7,7 @@ import '../models/session_model.dart';
 import '../models/user_model.dart';
 import 'package:file_picker/file_picker.dart';
 import 'auth_service.dart';
+import '../models/dashboard_model.dart';
 
 class ApiService {
   static const _base = 'http://127.0.0.1:8000';
@@ -35,6 +36,21 @@ class ApiService {
     if (response.statusCode != 200) {
       throw Exception("Failed to delete");
     }
+  }
+
+  static Future<DashboardModel> getDashboard() async {
+    final response = await http.get(
+      Uri.parse("$_base/dashboard"), 
+      headers: await AuthService.authHeaders(),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception("Failed to load dashboard");
+    }
+
+    return DashboardModel.fromJson(
+      jsonDecode(response.body),
+    );
   }
 
   static Future<List<dynamic>> getMessages(

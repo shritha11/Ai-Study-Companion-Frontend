@@ -4,8 +4,9 @@ import '../constants/app_colors.dart';
 import '../constants/app_radius.dart';
 import '../constants/app_spacing.dart';
 import 'brain_break_screen.dart';
-import '../models/user_model.dart';
+import '../models/dashboard_model.dart';
 import '../services/api_service.dart';
+import '../models/user_model.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,18 +16,32 @@ class HomeScreen extends StatefulWidget {
 } 
 class _HomeScreenState extends State<HomeScreen> {
 
-  UserModel? user;
+  DashboardModel? dashboard;
   bool isLoading = true;
 
   @override
 void initState() {
   super.initState();
-  loadUser();
+  loadDashboard();
 }
 
-Future<void> loadUser() async {
+// Future<void> loadUser() async {
+//   try {
+//     dashboard = await ApiService.getDashboard();
+//   } catch (e) {
+//     debugPrint(e.toString());
+//   }
+
+//   if (mounted) {
+//     setState(() {
+//       isLoading = false;
+//     });
+//   }
+// }
+
+Future<void> loadDashboard() async {
   try {
-    user = await ApiService.getCurrentUser();
+    dashboard = await ApiService.getDashboard();
   } catch (e) {
     debugPrint(e.toString());
   }
@@ -60,7 +75,7 @@ Future<void> loadUser() async {
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
-            SliverToBoxAdapter(child: _header(user!)),
+            SliverToBoxAdapter(child: _header(dashboard!)),
             SliverToBoxAdapter(child: SizedBox(height: AppSpacing.lg)),
             SliverToBoxAdapter(child: _continueLearning()),
             SliverToBoxAdapter(child: SizedBox(height: AppSpacing.lg)),
@@ -76,7 +91,7 @@ Future<void> loadUser() async {
     );
   }
 
-  Widget _header(UserModel user) {
+  Widget _header(DashboardModel dashboard) {
   return Padding(
     padding: EdgeInsets.fromLTRB(
       AppSpacing.lg,
@@ -97,7 +112,7 @@ Future<void> loadUser() async {
         ),
         SizedBox(height: AppSpacing.xs),
         Text(
-          '${user.name} ',
+          '${dashboard.user.name} ',
           style: GoogleFonts.inter(
             color: AppColors.textPrimary,
             fontSize: 32,

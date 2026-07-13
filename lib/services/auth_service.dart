@@ -69,13 +69,17 @@ class AuthService {
     }
 
     static Future<Map<String, String>> authHeaders() async {
-        final token = await getToken();
+  final token = await getToken();
 
-        return {
-            "Content-Type": "application/json", 
-            "Authorization": "Bearer $token",
-        };
-    }
+  print("========== TOKEN ==========");
+  print(token);
+  print("===========================");
+
+  return {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer $token",
+  };
+}
 
     static Future<String?> getToken() async {
         return await storage.read(key: "token");

@@ -2,21 +2,21 @@ class UserModel {
   final int id;
   final String name;
   final String email;
-  final DateTime createdAt;
+  final DateTime? createdAt;
 
   UserModel({
     required this.id,
     required this.name,
     required this.email,
-    required this.createdAt,
+    this.createdAt,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
-      id: json["id"],
+      id: json["id"] ?? json["user_id"],
       name: json["name"],
       email: json["email"],
-      createdAt: DateTime.parse(json["created_at"]),
+      createdAt: json["created_at"] != null ? DateTime.parse(json["created_at"]) : null,
     );
   }
 }
