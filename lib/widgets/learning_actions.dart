@@ -9,12 +9,14 @@ class LearningActions extends StatelessWidget {
   final String title;
   final String topic;
   final String? documentName;
+  final String sessionId;
 
   const LearningActions({
     super.key,
     required this.title,
     required this.topic,
     this.documentName,
+    required this.sessionId,
   });
 
   @override
@@ -42,7 +44,7 @@ class LearningActions extends StatelessWidget {
                 title: 'Quiz · $topic',
                 icon: Icons.quiz_outlined,
                 accentColor: AppColors.primary,
-                child: QuizWidget(topic: topic, documentName: documentName),
+                child: QuizWidget(topic: topic, documentName: documentName, sessionId: sessionId),
               );
             }),
             _chip(context, Icons.style_outlined, 'Flashcards', AppColors.warning, () {
@@ -51,7 +53,7 @@ class LearningActions extends StatelessWidget {
                 title: 'Flashcards · $topic',
                 icon: Icons.style_outlined,
                 accentColor: AppColors.warning,
-                child: FlashcardsWidget(topic: topic, documentName: documentName),
+                child: FlashcardsWidget(topic: topic, documentName: documentName, sessionId: sessionId),
               );
             }),
             _chip(context, Icons.summarize_outlined, 'Summary', AppColors.blue, () {

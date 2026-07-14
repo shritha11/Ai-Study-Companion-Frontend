@@ -44,6 +44,14 @@ class ApiService {
       headers: await AuthService.authHeaders(),
     );
 
+   // print(response.body);
+
+   if (response.statusCode == 401) {
+    await AuthService.logout();
+    throw Exception("Session expired");
+  }
+
+
     if (response.statusCode != 200) {
       throw Exception("Failed to load dashboard");
     }
@@ -185,11 +193,15 @@ static Future<UserModel> getCurrentUser() async {
   }
 
   // Quiz generation
-  static Future<List<QuizQuestion>> generateQuiz(String topic, {String? documentName}) async {
+  static Future<List<QuizQuestion>> generateQuiz(String topic, {String? documentName, required String sessionId}) async {
     final res = await http.post(
       Uri.parse('$_base/quiz'),
       headers: await AuthService.authHeaders(),
-      body: jsonEncode({'topic': topic, 'document_name': documentName}),
+      body: jsonEncode({
+        'topic': topic, 
+        'document_name': documentName,
+        'session_id': sessionId,
+        }),
     );
     if (res.statusCode != 200) throw Exception('Quiz generation failed');
     final data = jsonDecode(res.body) as Map<String, dynamic>;
@@ -199,11 +211,15 @@ static Future<UserModel> getCurrentUser() async {
   }
 
   // Flashcard generation
-  static Future<List<Flashcard>> generateFlashcards(String topic, {String? documentName}) async {
+  static Future<List<Flashcard>> generateFlashcards(String topic, {String? documentName, required String sessionId}) async {
     final res = await http.post(
       Uri.parse('$_base/flashcards'),
       headers: await AuthService.authHeaders(),
-      body: jsonEncode({'topic': topic, 'document_name': documentName}),
+      body: jsonEncode({
+        'topic': topic, 
+        'document_name': documentName,
+        'session_id': sessionId,
+        }),
     );
     if (res.statusCode != 200) throw Exception('Flashcard generation failed');
     final data = jsonDecode(res.body) as Map<String, dynamic>;

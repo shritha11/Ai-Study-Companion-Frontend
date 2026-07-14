@@ -4,8 +4,9 @@ import 'package:provider/provider.dart';
 
 import '../providers/auth_provider.dart';
 import 'auth/login_screen.dart';
-import '../models/user_model.dart';
+//import '../models/user_model.dart';
 import '../services/api_service.dart';
+import '../models/dashboard_model.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -15,14 +16,8 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  UserModel? user;
+  DashboardModel? dashboard;
   bool isLoading = true;
-
-  final stats = [
-    {'label': 'Sessions', 'value': '24'},
-    {'label': 'Quizzes', 'value': '12'},
-    {'label': 'Flashcards', 'value': '86'},
-  ];
 
   final settings = [
     {
@@ -65,9 +60,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> loadUser() async {
     try {
-      user = await ApiService.getCurrentUser();
-      print(user!.name);
-      print(user!.email);
+      dashboard = await ApiService.getDashboard();
+      print(dashboard!.user.name);
+      print(dashboard!.user.email);
 
     } catch (e) {
       debugPrint(e.toString());
@@ -88,6 +83,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
     }
 
+    if (dashboard == null) {
+  return const Scaffold(
+    body: Center(
+      child: Text("Failed to load profile"),
+    ),
+  );
+}
+
+
+    final stats = [
+      { 
+        "label": "Sessions",
+        "value": dashboard!.stats.sessions.toString(),
+      }, 
+      {
+        "label": "Quizzes",
+        "value": dashboard!.stats.quizzes.toString(),
+      },
+      {
+        "label": "Flashcards", 
+        "value": dashboard!.stats.flashcards.toString(),
+      },
+    ];
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -115,7 +133,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                       child: Center(
                         child: Text(
-                          user!.name[0].toUpperCase(),
+                          dashboard!.user.name[0].toUpperCase(),
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 32,
@@ -126,7 +144,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(height: 14),
                     Text(
-                      user!.name,
+                      dashboard!.user.name,
                       style: const TextStyle(
                         color: AppColors.textPrimary,
                         fontSize: 22,
@@ -135,7 +153,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      user!.email,
+                      dashboard!.user.email,
                       style: const TextStyle(
                         color: AppColors.textSecondary,
                         fontSize: 14,

@@ -8,11 +8,13 @@ import 'learning_actions.dart';
 class MessageBubble extends StatelessWidget {
   final MessageModel message;
   final String? documentName;
+  final String sessionId;
 
   const MessageBubble({
     super.key,
     required this.message,
     this.documentName,
+    required this.sessionId,
   });
 
   @override
@@ -40,6 +42,7 @@ class MessageBubble extends StatelessWidget {
                 title: message.learningTitle!,
                 topic: LearningHelper.extractTopic(message.text),
                 documentName: documentName,
+                sessionId: sessionId,
               ),
             ],
           ],

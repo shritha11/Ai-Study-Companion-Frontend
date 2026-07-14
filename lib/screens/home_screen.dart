@@ -6,7 +6,7 @@ import '../constants/app_spacing.dart';
 import 'brain_break_screen.dart';
 import '../models/dashboard_model.dart';
 import '../services/api_service.dart';
-import '../models/user_model.dart';
+
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -69,6 +69,14 @@ Future<void> loadDashboard() async {
     ),
   );
 }
+
+if (dashboard == null) {
+  return const Scaffold(
+    body: Center(
+      child: Text("Failed to load dashboard"),
+    ),
+  );
+}
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -77,13 +85,13 @@ Future<void> loadDashboard() async {
           slivers: [
             SliverToBoxAdapter(child: _header(dashboard!)),
             SliverToBoxAdapter(child: SizedBox(height: AppSpacing.lg)),
-            SliverToBoxAdapter(child: _continueLearning()),
+            SliverToBoxAdapter(child: _continueLearning(dashboard!)),
             SliverToBoxAdapter(child: SizedBox(height: AppSpacing.lg)),
             SliverToBoxAdapter(child: _brainBreak(context)), 
             SliverToBoxAdapter(child: SizedBox(height: AppSpacing.lg)),
             SliverToBoxAdapter(child: _quickActions(context)),
             SliverToBoxAdapter(child: SizedBox(height: AppSpacing.lg)),
-            SliverToBoxAdapter(child: _recentSessions()),
+            SliverToBoxAdapter(child: _recentSessions(dashboard!)),
             SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xxl)),
           ],
         ),
@@ -133,11 +141,13 @@ Future<void> loadDashboard() async {
   );
 }
 
-  Widget _continueLearning() {
+  Widget _continueLearning(DashboardModel dashboard) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
       child: InkWell(
-        onTap: () {},
+        onTap: dashboard.continueLearning == null ? null : () {
+          //
+        },
         borderRadius: BorderRadius.circular(AppRadius.medium),
         child: Ink(
           padding: EdgeInsets.all(AppSpacing.md),
@@ -160,7 +170,7 @@ Future<void> loadDashboard() async {
               ),
               SizedBox(height: AppSpacing.md),
               Text(
-                'Data Structures',
+                 dashboard.continueLearning?.documentName ?? "No recent study session",
                 style: GoogleFonts.inter(
                   color: AppColors.textPrimary,
                   fontSize: 20,
@@ -169,7 +179,7 @@ Future<void> loadDashboard() async {
               ),
               SizedBox(height: AppSpacing.xs),
               Text(
-                'Last session · Today · 6:42 PM',
+                dashboard.continueLearning == null ? "Start chatting to begin learning." : dashboard.continueLearning!.createdAt.toString(),
                 style: GoogleFonts.inter(
                   color: AppColors.textSecondary,
                   fontSize: 13,
@@ -430,13 +440,8 @@ Future<void> loadDashboard() async {
     );
   }
 
-  Widget _recentSessions() {
-    final sessions = [
-      {'title': 'Binary Search', 'time': 'Today · 6:42 PM', 'icon': Icons.search_rounded},
-      {'title': 'Operating Systems', 'time': 'Yesterday', 'icon': Icons.memory_rounded},
-      {'title': 'Flutter Widgets', 'time': '2 days ago', 'icon': Icons.widgets_outlined},
-    ];
-
+  Widget _recentSessions(DashboardModel dashboard) {
+    final sessions = dashboard.recentSessions;
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
       child: Column(
@@ -459,7 +464,23 @@ Future<void> loadDashboard() async {
             ),
           ),
           SizedBox(height: AppSpacing.md),
-          ...sessions.map((s) => Padding(
+          if (sessions.isEmpty)
+  Container(
+    padding: EdgeInsets.all(AppSpacing.md),
+    decoration: BoxDecoration(
+      color: AppColors.card,
+      borderRadius: BorderRadius.circular(AppRadius.medium),
+      border: Border.all(color: AppColors.border),
+    ),
+    child: Text(
+      "No recent sessions yet.",
+      style: GoogleFonts.inter(
+        color: AppColors.textSecondary,
+      ),
+    ),
+  )
+else
+  ...sessions.map((session) => Padding(
             padding: EdgeInsets.only(bottom: AppSpacing.sm),
             child: InkWell(
               onTap: () {},
@@ -478,13 +499,13 @@ Future<void> loadDashboard() async {
                       color: AppColors.primary.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(AppRadius.small),
                     ),
-                    child: Icon(s['icon'] as IconData, color: AppColors.primary, size: 18),
+                    child: Icon(Icons.history_rounded, color: AppColors.primary, size: 18),
                   ),
                   SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       Text(
-                        s['title'] as String,
+                        session.documentName ?? "Untitled Session",
                         style: GoogleFonts.inter(
                           color: AppColors.textPrimary,
                           fontSize: 14,
@@ -493,7 +514,7 @@ Future<void> loadDashboard() async {
                       ),
                       SizedBox(height: AppSpacing.xs),
                       Text(
-                        s['time'] as String,
+                        session.createdAt.toString(),
                         style: GoogleFonts.inter(
                           color: AppColors.textSecondary,
                           fontSize: 12,

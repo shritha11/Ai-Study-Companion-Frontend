@@ -285,6 +285,8 @@ class _StudyScreenState extends State<StudyScreen> {
           case StudyItemType.message:
           child = MessageBubble(
             message: item.message!,
+            documentName: item.documentName,
+            sessionId: _sessionId,
           );
           break;
 
@@ -292,6 +294,7 @@ class _StudyScreenState extends State<StudyScreen> {
           child = QuizWidget(
             topic: item.topic!, 
             documentName: item.documentName,
+            sessionId: _sessionId,
           );
           break;
 
@@ -299,6 +302,7 @@ class _StudyScreenState extends State<StudyScreen> {
           child = FlashcardsWidget(
             topic: item.topic!, 
             documentName: item.documentName,
+            sessionId: _sessionId,
           );
           break;
 
@@ -306,6 +310,7 @@ class _StudyScreenState extends State<StudyScreen> {
              child = CodingWidget(
              topic: item.topic!,
              documentName: item.documentName,
+             //sessionId: _sessionId,
           );
           break;
 
@@ -313,6 +318,7 @@ class _StudyScreenState extends State<StudyScreen> {
             child = SummaryWidget(
               topic: item.topic!,
               documentName: item.documentName,
+              //sessionId: _sessionId,
             );
             break;
 
@@ -320,6 +326,7 @@ class _StudyScreenState extends State<StudyScreen> {
           child = ExamplesWidget(
             topic: item.topic!,
             documentName: item.documentName,
+            //sessionId: _sessionId,
           );
           break;
         }
