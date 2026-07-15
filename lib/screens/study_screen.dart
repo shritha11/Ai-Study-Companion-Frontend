@@ -17,6 +17,7 @@ import '../models/study_mode.dart';
 class StudyScreen extends StatefulWidget {
   final String sessionId;
   final String? documentName;
+  final List<String>? documentNames;
   final String? pdfName;
   final StudyMode mode;
 
@@ -24,6 +25,7 @@ class StudyScreen extends StatefulWidget {
     super.key, 
     required this.sessionId,
     this.documentName, 
+    this.documentNames,
     this.pdfName, 
     this.mode = StudyMode.learn,
   });
@@ -38,6 +40,7 @@ class _StudyScreenState extends State<StudyScreen> {
   final List<StudyItem> _timeline = [];
   bool _isTyping = false;
   String? _documentName;
+  List<String>? _documentNames;
   String? _pdfName;
   late String _sessionId;
 
@@ -46,6 +49,7 @@ class _StudyScreenState extends State<StudyScreen> {
     super.initState();
     _sessionId = widget.sessionId;
     _documentName = widget.documentName;
+    _documentNames = widget.documentNames;
     _pdfName = widget.pdfName;
 
     if (_sessionId.isNotEmpty) {
@@ -131,7 +135,7 @@ if (widget.mode == StudyMode.flashcards) {
     _scrollBottom();
 
     try {
-      final response = await ApiService.chat(msg, documentName: _documentName, sessionId: _sessionId);
+      final response = await ApiService.chat(msg, documentName: _documentName, documentNames: _documentNames, sessionId: _sessionId);
       debugPrint("TYPE: ${response.type}");
       debugPrint("TOPIC: ${response.topic}");
 
@@ -337,6 +341,7 @@ if (widget.mode == StudyMode.flashcards) {
             topic: item.topic!, 
             documentName: item.documentName,
             sessionId: _sessionId,
+            documentNames: _documentNames,
           );
           break;
 
@@ -345,6 +350,7 @@ if (widget.mode == StudyMode.flashcards) {
             topic: item.topic!, 
             documentName: item.documentName,
             sessionId: _sessionId,
+            documentNames: _documentNames,
           );
           break;
 
@@ -352,6 +358,7 @@ if (widget.mode == StudyMode.flashcards) {
              child = CodingWidget(
              topic: item.topic!,
              documentName: item.documentName,
+             documentNames: _documentNames,
              //sessionId: _sessionId,
           );
           break;
@@ -360,6 +367,7 @@ if (widget.mode == StudyMode.flashcards) {
             child = SummaryWidget(
               topic: item.topic!,
               documentName: item.documentName,
+              documentNames: _documentNames,
               //sessionId: _sessionId,
             );
             break;
@@ -368,6 +376,7 @@ if (widget.mode == StudyMode.flashcards) {
           child = ExamplesWidget(
             topic: item.topic!,
             documentName: item.documentName,
+            documentNames: _documentNames,
             //sessionId: _sessionId,
           );
           break;

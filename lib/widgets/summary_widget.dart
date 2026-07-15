@@ -7,7 +7,8 @@ import '../services/api_service.dart';
 class SummaryWidget extends StatefulWidget {
   final String topic;
   final String? documentName;
-  const SummaryWidget({super.key, required this.topic, this.documentName});
+  final List<String>? documentNames;
+  const SummaryWidget({super.key, required this.topic, this.documentName, this.documentNames});
 
   @override
   State<SummaryWidget> createState() => _SummaryWidgetState();
@@ -29,6 +30,7 @@ class _SummaryWidgetState extends State<SummaryWidget> {
       final response = await ApiService.chat(
           'Give me a concise bullet-point summary of: ${widget.topic}. Use • for each point. Max 6 points.', 
           documentName: widget.documentName,
+          documentNames: widget.documentNames,
           );
       setState(() { _summary = response.response; _loading = false; });
     } catch (_) {
@@ -96,7 +98,8 @@ class _SummaryWidgetState extends State<SummaryWidget> {
 class ExamplesWidget extends StatefulWidget {
   final String topic;
   final String? documentName;
-  const ExamplesWidget({super.key, required this.topic, this.documentName});
+  final List<String>? documentNames;
+  const ExamplesWidget({super.key, required this.topic, this.documentName, this.documentNames });
 
   @override
   State<ExamplesWidget> createState() => _ExamplesWidgetState();
@@ -116,7 +119,9 @@ class _ExamplesWidgetState extends State<ExamplesWidget> {
     try {
       final response = await ApiService.chat(
           'Give me 4 real-world practical examples of: ${widget.topic}. Number them 1-4. Keep each example concise and clear.', 
-          documentName: widget.documentName);
+          documentName: widget.documentName,
+          documentNames: widget.documentNames,
+          );
       setState(() { _content = response.response; _loading = false; });
     } catch (_) {
       setState(() { _content = 'Failed to load examples.'; _loading = false; });
@@ -169,7 +174,8 @@ class _ExamplesWidgetState extends State<ExamplesWidget> {
 class CodingWidget extends StatefulWidget {
   final String topic;
   final String? documentName;
-  const CodingWidget({super.key, required this.topic, this.documentName});
+  final List<String>? documentNames;
+  const CodingWidget({super.key, required this.topic, this.documentName, this.documentNames});
 
   @override
   State<CodingWidget> createState() => _CodingWidgetState();
@@ -198,6 +204,7 @@ class _CodingWidgetState extends State<CodingWidget> {
           'HINT: [one helpful hint]\n'
           'SOLUTION: [code solution]', 
           documentName: widget.documentName,
+          documentNames: widget.documentNames,
           );
       setState(() { _challenge = _parse(response.response ?? ""); _loading = false; });
     } catch (_) {

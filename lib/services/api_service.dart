@@ -13,11 +13,11 @@ class ApiService {
   static const _base = 'http://127.0.0.1:8000';
 
   // Chat — plain question or with PDF context
-  static Future<ChatResponse> chat(String message, {String? documentName, String? sessionId}) async {
+  static Future<ChatResponse> chat(String message, {String? documentName, List<String>? documentNames, String? sessionId}) async {
     final res = await http.post(
       Uri.parse('$_base/chat'),
       headers: await AuthService.authHeaders(),
-      body: jsonEncode({'message': message, 'document_name': documentName, "session_id": sessionId}),
+      body: jsonEncode({'message': message, 'document_name': documentName, "document_names": documentNames, "session_id": sessionId}),
     );
     if (res.statusCode != 200) throw Exception('Chat failed');
     return ChatResponse.fromJson(
@@ -193,13 +193,14 @@ static Future<UserModel> getCurrentUser() async {
   }
 
   // Quiz generation
-  static Future<List<QuizQuestion>> generateQuiz(String topic, {String? documentName, required String sessionId}) async {
+  static Future<List<QuizQuestion>> generateQuiz(String topic, {String? documentName, List<String>? documentNames, required String sessionId}) async {
     final res = await http.post(
       Uri.parse('$_base/quiz'),
       headers: await AuthService.authHeaders(),
       body: jsonEncode({
         'topic': topic, 
         'document_name': documentName,
+        'document_names': documentNames,
         'session_id': sessionId,
         }),
     );
@@ -211,13 +212,14 @@ static Future<UserModel> getCurrentUser() async {
   }
 
   // Flashcard generation
-  static Future<List<Flashcard>> generateFlashcards(String topic, {String? documentName, required String sessionId}) async {
+  static Future<List<Flashcard>> generateFlashcards(String topic, {String? documentName, List<String>? documentNames, required String sessionId}) async {
     final res = await http.post(
       Uri.parse('$_base/flashcards'),
       headers: await AuthService.authHeaders(),
       body: jsonEncode({
         'topic': topic, 
         'document_name': documentName,
+        'document_names': documentNames,
         'session_id': sessionId,
         }),
     );

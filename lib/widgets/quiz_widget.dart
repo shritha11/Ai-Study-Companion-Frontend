@@ -7,8 +7,9 @@ class QuizWidget extends StatefulWidget {
   final String topic;
   final String? documentName;
   final String? sessionId;
+  final List<String>? documentNames;
 
-  const QuizWidget({super.key, required this.topic, this.documentName, this.sessionId});
+  const QuizWidget({super.key, required this.topic, this.documentName, this.sessionId, this.documentNames});
 
   @override
   State<QuizWidget> createState() => _QuizWidgetState();
@@ -30,7 +31,7 @@ class _QuizWidgetState extends State<QuizWidget> {
   Future<void> _load() async {
     setState(() { _loading = true; _error = null; _done = false; _current = 0; });
     try {
-      final qs = await ApiService.generateQuiz(widget.topic, documentName: widget.documentName, sessionId: widget.sessionId ?? "");
+      final qs = await ApiService.generateQuiz(widget.topic, documentName: widget.documentName, documentNames: widget.documentNames, sessionId: widget.sessionId ?? "");
       setState(() { _questions = qs; _loading = false; });
     } catch (_) {
       setState(() { _error = 'Failed to generate quiz.'; _loading = false; });

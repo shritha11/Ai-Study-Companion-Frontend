@@ -14,6 +14,7 @@ class LibraryScreen extends StatefulWidget {
 }
 
 class _LibraryScreenState extends State<LibraryScreen> {
+  final List<DocumentModel> _selectedDocs = [];
   late Future<List<DocumentModel>> _documents;
   String _search = "";
 
@@ -222,6 +223,33 @@ ListTile(
  
     return Scaffold(
       backgroundColor: AppColors.background,
+      floatingActionButton: _selectedDocs.isEmpty
+    ? null
+    : FloatingActionButton.extended(
+        icon: const Icon(Icons.smart_toy),
+        label: Text("Study (${_selectedDocs.length})"),
+        onPressed: () async {
+
+          final session = await ApiService.createSession(null);
+
+          final documentNames =
+              _selectedDocs
+                  .map((e) => e.documentName)
+                  .toList();
+
+          if (!mounted) return;
+
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => StudyScreen(
+                sessionId: session.id,
+                documentNames: documentNames,
+              ),
+            ),
+          );
+        },
+      ),
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: _refresh, 
@@ -349,21 +377,15 @@ ListTile(
                   return Padding(
                     padding: const EdgeInsets.fromLTRB(24, 0, 24, 10),
                     child: InkWell(
-                      onTap: () async {
-                        final session = await ApiService.createSession(
-                          item.documentName,
-                        );
-                        Navigator.push(
-                          context, 
-                          MaterialPageRoute(
-                            builder: (_) => StudyScreen(
-                              sessionId: session.id,
-                              documentName: item.documentName, 
-                              pdfName: item.originalFilename,
-                            )
-                          ),
-                        );
-                      }
+                      onTap: () {
+    setState(() {
+        if (_selectedDocs.contains(item)) {
+            _selectedDocs.remove(item);
+        } else {
+            _selectedDocs.add(item);
+        }
+    });
+}
                       ,
                       borderRadius: BorderRadius.circular(16),
                       child: Ink(
@@ -380,7 +402,10 @@ ListTile(
                               color: AppColors.primary.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: const Icon(Icons.description_rounded, color: AppColors.primary, size: 20),
+                            child: _selectedDocs.contains(item)
+    ? const Icon(Icons.check_circle,
+        color: AppColors.primary)
+    : const Icon(Icons.description)
                           ),
                           const SizedBox(width: 14),
                           Expanded(
