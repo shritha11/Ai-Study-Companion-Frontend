@@ -13,12 +13,13 @@ import '../widgets/quiz_widget.dart';
 import '../widgets/flashcards_widget.dart';
 import '../widgets/summary_widget.dart';
 import '../models/study_mode.dart';
+import 'library_screen.dart';
 
 class StudyScreen extends StatefulWidget {
   final String sessionId;
   final String? documentName;
   final List<String>? documentNames;
-  final String? pdfName;
+  final List<String>? pdfNames;
   final StudyMode mode;
 
   const StudyScreen({
@@ -26,7 +27,7 @@ class StudyScreen extends StatefulWidget {
     required this.sessionId,
     this.documentName, 
     this.documentNames,
-    this.pdfName, 
+    this.pdfNames,
     this.mode = StudyMode.learn,
   });
 
@@ -40,8 +41,8 @@ class _StudyScreenState extends State<StudyScreen> {
   final List<StudyItem> _timeline = [];
   bool _isTyping = false;
   String? _documentName;
-  List<String>? _documentNames;
-  String? _pdfName;
+  List<String> _documentNames = [];
+  List<String> _pdfNames = [];
   late String _sessionId;
 
   @override
@@ -49,8 +50,8 @@ class _StudyScreenState extends State<StudyScreen> {
     super.initState();
     _sessionId = widget.sessionId;
     _documentName = widget.documentName;
-    _documentNames = widget.documentNames;
-    _pdfName = widget.pdfName;
+    _documentNames = [...?widget.documentNames];
+    _pdfNames = [...?widget.pdfNames];
 
     if (_sessionId.isNotEmpty) {
       _loadMessages();
@@ -76,6 +77,35 @@ class _StudyScreenState extends State<StudyScreen> {
 
   //   _sessionId = session.id;
   // }
+
+  Future<void> _openLibraryPicker() async {
+  final selected = await Navigator.push<List<Map<String, String>>>(
+    context,
+    MaterialPageRoute(
+      builder: (_) => const LibraryScreen(
+        selectionMode: true,
+      ),
+    ),
+  );
+
+  if (selected == null || selected.isEmpty) return;
+
+  setState(() {
+    for (final doc in selected) {
+      final documentName = doc["document_name"]!;
+      final pdfName = doc["original_filename"]!;
+
+      if (!_documentNames.contains(documentName)) {
+        _documentNames.add(documentName);
+        _pdfNames.add(pdfName);
+      }
+    }
+
+    if (_documentNames.isNotEmpty) {
+      _documentName = _documentNames.first;
+    }
+  });
+}
 
   void _scrollBottom() {
     Future.delayed(const Duration(milliseconds: 120), () {
@@ -203,19 +233,57 @@ if (widget.mode == StudyMode.flashcards) {
 
  
 
+  Future<void> _showAttachmentOptions() async {
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: AppColors.card,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(
+        top: Radius.circular(24),
+      ),
+    ),
+    builder: (_) {
+      return SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.upload_file),
+              title: const Text("Upload Documents"),
+              onTap: () {
+                Navigator.pop(context);
+                _uploadPdf();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.folder),
+              title: const Text("Choose from Library"),
+              onTap: () {
+                Navigator.pop(context);
+                _openLibraryPicker();
+              },
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
+
   Future<void> _uploadPdf() async {
     final result = await ApiService.uploadPdf();
     if (result == null) return;
     setState(() {
-      _pdfName = result["original_filename"];
-      _documentName = result["document_name"];
+      _documentNames.add(result["document_name"]);
+      _pdfNames.add(result["original_filename"]);
+      _documentName = _documentNames.first;
     });
     
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Row(children: [
         const Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 16),
         const SizedBox(width: 8),
-        Text('$_pdfName uploaded successfully'),
+        Text('${result["original_filename"]} uploaded successfully')
       ]),
       backgroundColor: AppColors.card,
       behavior: SnackBarBehavior.floating,
@@ -255,7 +323,8 @@ if (widget.mode == StudyMode.flashcards) {
       appBar: _buildAppBar(),
       body: Column(
         children: [
-          if (_pdfName != null) _pdfBanner(),
+          if (_pdfNames.isNotEmpty)
+    _documentChips(),
           Expanded(
             child: _timeline.isEmpty
                 ? EmptyState(
@@ -268,8 +337,8 @@ if (widget.mode == StudyMode.flashcards) {
           ChatInput(
             controller: _controller,
             onSend: () => _send(_controller.text),
-            onAttach: _uploadPdf,
-            hasPdf: _pdfName != null,
+            onAttach: _showAttachmentOptions,
+            hasPdf: _pdfNames.isNotEmpty,
           ),
         ],
       ),
@@ -300,24 +369,30 @@ if (widget.mode == StudyMode.flashcards) {
     );
   }
 
-  Widget _pdfBanner() {
-    return Container(
-      color: AppColors.primary.withOpacity(0.1),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      child: Row(children: [
-        const Icon(Icons.picture_as_pdf_rounded, color: AppColors.primary, size: 16),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text('$_pdfName · AI will answer from this.',
-              style: const TextStyle(color: AppColors.primary, fontSize: 12, fontWeight: FontWeight.w500)),
+  Widget _documentChips() {
+  return Padding(
+    padding: const EdgeInsets.all(12),
+    child: Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: List.generate(
+        _pdfNames.length,
+        (index) => Chip(
+          label: Text(_pdfNames[index]),
+          deleteIcon: const Icon(Icons.close, size: 18),
+          onDeleted: () {
+            setState(() {
+              _pdfNames.removeAt(index);
+              _documentNames.removeAt(index);
+            });
+          },
         ),
-        GestureDetector(
-          onTap: () => setState(() { _pdfName = null; _documentName = null; }),
-          child: const Icon(Icons.close_rounded, color: AppColors.primary, size: 16),
-        ),
-      ]),
-    );
-  }
+      ),
+    ),
+  );
+}
+
+  
 
   Widget _buildTimeline() {
     return ListView.builder(

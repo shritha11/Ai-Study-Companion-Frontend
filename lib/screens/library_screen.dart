@@ -7,7 +7,8 @@ import 'study_screen.dart';
 // ── Library Screen 
  
 class LibraryScreen extends StatefulWidget {
-  const LibraryScreen({super.key});
+  final bool selectionMode;
+  const LibraryScreen({super.key, this.selectionMode = false});
 
   @override
   State<LibraryScreen> createState() => _LibraryScreenState();
@@ -66,7 +67,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
         builder: (_) => StudyScreen(
           sessionId: session.id,
           documentName: item.documentName,
-          pdfName: item.originalFilename,
+          pdfNames: [item.originalFilename],
         ),
       ),
     );
@@ -88,7 +89,7 @@ ListTile(
         builder: (_) => StudyScreen(
           sessionId: session.id,
           documentName: item.documentName,
-          pdfName: item.originalFilename,
+          pdfNames: [item.originalFilename],
         ),
       ),
     );
@@ -223,40 +224,32 @@ ListTile(
  
     return Scaffold(
       backgroundColor: AppColors.background,
-      floatingActionButton: _selectedDocs.isEmpty
-    ? null
-    : FloatingActionButton.extended(
-        icon: const Icon(Icons.smart_toy),
-        label: Text("Study (${_selectedDocs.length})"),
-        onPressed: () async {
-
-          final session = await ApiService.createSession(null);
-
-          final documentNames =
-              _selectedDocs
-                  .map((e) => e.documentName)
-                  .toList();
-
-          if (!mounted) return;
-
-          Navigator.push(
+      floatingActionButton: widget.selectionMode &&
+        _selectedDocs.isNotEmpty
+    ? FloatingActionButton.extended(
+        icon: const Icon(Icons.check),
+        label: Text("Add ${_selectedDocs.length}"),
+        onPressed: () {
+          Navigator.pop(
             context,
-            MaterialPageRoute(
-              builder: (_) => StudyScreen(
-                sessionId: session.id,
-                documentNames: documentNames,
-              ),
-            ),
+            _selectedDocs
+                .map(
+                  (e) => {
+                    "document_name": e.documentName,
+                    "original_filename": e.originalFilename,
+                  },
+                )
+                .toList(),
           );
         },
-      ),
+      )
+    : null,
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: _refresh, 
           child: FutureBuilder<List<DocumentModel>>(
   future: _documents,
   builder: (context, snapshot) {
-
     if (snapshot.connectionState == ConnectionState.waiting) {
       return const Center(
         child: CircularProgressIndicator(),
@@ -378,13 +371,18 @@ ListTile(
                     padding: const EdgeInsets.fromLTRB(24, 0, 24, 10),
                     child: InkWell(
                       onTap: () {
+  if (widget.selectionMode) {
     setState(() {
-        if (_selectedDocs.contains(item)) {
-            _selectedDocs.remove(item);
-        } else {
-            _selectedDocs.add(item);
-        }
+      if (_selectedDocs.contains(item)) {
+        _selectedDocs.remove(item);
+      } else {
+        _selectedDocs.add(item);
+      }
     });
+    return;
+  }
+
+  _showMenu(item);
 }
                       ,
                       borderRadius: BorderRadius.circular(16),
@@ -402,10 +400,7 @@ ListTile(
                               color: AppColors.primary.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: _selectedDocs.contains(item)
-    ? const Icon(Icons.check_circle,
-        color: AppColors.primary)
-    : const Icon(Icons.description)
+                            child: const Icon(Icons.description),
                           ),
                           const SizedBox(width: 14),
                           Expanded(
@@ -418,16 +413,27 @@ ListTile(
                                   style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
                             ]),
                           ),
-                          IconButton(
-                         icon: const Icon(
-                          Icons.more_vert_rounded,
-                          color: AppColors.textMuted,
-                          size: 18,
-                        ),
-                        onPressed: () {
-                        _showMenu(item);
-                       },
-                      )
+                          widget.selectionMode
+    ? Checkbox(
+        value: _selectedDocs.contains(item),
+        onChanged: (_) {
+          setState(() {
+            if (_selectedDocs.contains(item)) {
+              _selectedDocs.remove(item);
+            } else {
+              _selectedDocs.add(item);
+            }
+          });
+        },
+      )
+    : IconButton(
+        icon: const Icon(
+          Icons.more_vert_rounded,
+          color: AppColors.textMuted,
+          size: 18,
+        ),
+        onPressed: () => _showMenu(item),
+      ),
                         ]),
                       ),
                     ),
