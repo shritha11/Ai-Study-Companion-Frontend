@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
+import '../models/study_mode.dart';
 
 class EmptyState extends StatelessWidget {
   final void Function(String) onChipTap;
+  final StudyMode mode;
 
-  const EmptyState({super.key, required this.onChipTap});
+  const EmptyState({super.key, required this.onChipTap, this.mode = StudyMode.learn});
 
   static const _chips = [
     'Data Structures',
@@ -17,7 +19,30 @@ class EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
+      String title;
+String subtitle;
+
+switch (mode) {
+  case StudyMode.learn:
+    title = "What would you like\nto learn today?";
+    subtitle =
+        "Ask a question, upload notes, or let Lumina create quizzes and flashcards.";
+    break;
+
+  case StudyMode.quiz:
+    title = "Ready to test\nyour knowledge?";
+    subtitle =
+        "Enter a topic or upload notes to generate an AI-powered quiz.";
+    break;
+
+  case StudyMode.flashcards:
+    title = "Let's revise\ntogether!";
+    subtitle =
+        "Enter a topic or upload notes to create smart flashcards.";
+    break;
+}
+
+      return Center(
       child: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
         child: Column(
@@ -40,28 +65,32 @@ class EmptyState extends StatelessWidget {
               child: const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 32),
             ),
             const SizedBox(height: 24),
-            const Text(
-              'What would you like\nto learn today?',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 24,
-                fontWeight: FontWeight.w700,
-                height: 1.25,
-                letterSpacing: -0.4,
-              ),
-            ),
-            const SizedBox(height: 10),
-            const Text(
-              'Ask a question, upload notes, or let Lumina\ncreate quizzes and flashcards.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 14,
-                height: 1.6,
-              ),
-            ),
-            const SizedBox(height: 32),
+
+Text(
+  title,
+  textAlign: TextAlign.center,
+  style: const TextStyle(
+    color: AppColors.textPrimary,
+    fontSize: 24,
+    fontWeight: FontWeight.w700,
+    height: 1.25,
+    letterSpacing: -0.4,
+  ),
+),
+
+const SizedBox(height: 10),
+
+Text(
+  subtitle,
+  textAlign: TextAlign.center,
+  style: const TextStyle(
+    color: AppColors.textSecondary,
+    fontSize: 14,
+    height: 1.6,
+  ),
+),
+
+const SizedBox(height: 32),
             Wrap(
               spacing: 10,
               runSpacing: 10,

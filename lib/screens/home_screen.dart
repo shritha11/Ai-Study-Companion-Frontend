@@ -6,7 +6,9 @@ import '../constants/app_spacing.dart';
 import 'brain_break_screen.dart';
 import '../models/dashboard_model.dart';
 import '../services/api_service.dart';
-
+import 'study_screen.dart';
+import 'library_screen.dart';
+import '../models/study_mode.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -18,6 +20,23 @@ class _HomeScreenState extends State<HomeScreen> {
 
   DashboardModel? dashboard;
   bool isLoading = true;
+
+  String formatDate(DateTime date) {
+  final now = DateTime.now();
+
+  if (DateUtils.isSameDay(now, date)) {
+    return "Today • ${TimeOfDay.fromDateTime(date).format(context)}";
+  }
+
+  if (DateUtils.isSameDay(
+      now.subtract(const Duration(days: 1)),
+      date,
+  )) {
+    return "Yesterday";
+  }
+
+  return "${date.day}/${date.month}/${date.year}";
+}
 
   @override
 void initState() {
@@ -77,6 +96,7 @@ if (dashboard == null) {
     ),
   );
 }
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -146,7 +166,15 @@ if (dashboard == null) {
       padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
       child: InkWell(
         onTap: dashboard.continueLearning == null ? null : () {
-          //
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => StudyScreen(
+                sessionId: dashboard.continueLearning!.id,
+                documentName: dashboard.continueLearning!.documentName,
+              ),
+            ),
+          );
         },
         borderRadius: BorderRadius.circular(AppRadius.medium),
         child: Ink(
@@ -170,7 +198,7 @@ if (dashboard == null) {
               ),
               SizedBox(height: AppSpacing.md),
               Text(
-                 dashboard.continueLearning?.documentName ?? "No recent study session",
+                 dashboard.continueLearning?.title ?? "No recent study session",
                 style: GoogleFonts.inter(
                   color: AppColors.textPrimary,
                   fontSize: 20,
@@ -179,7 +207,7 @@ if (dashboard == null) {
               ),
               SizedBox(height: AppSpacing.xs),
               Text(
-                dashboard.continueLearning == null ? "Start chatting to begin learning." : dashboard.continueLearning!.createdAt.toString(),
+                dashboard.continueLearning == null ? "Start chatting to begin learning." : formatDate(dashboard.continueLearning!.createdAt),
                 style: GoogleFonts.inter(
                   color: AppColors.textSecondary,
                   fontSize: 13,
@@ -318,6 +346,16 @@ if (dashboard == null) {
             title: 'Learn',
             subtitle: 'Ask Eunoia anything',
             color: AppColors.primary,
+            onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => StudyScreen(
+          sessionId: "",
+        ),
+          ),
+    );
+            },
           ),
           SizedBox(height: AppSpacing.sm),
           Row(children: [
@@ -327,6 +365,17 @@ if (dashboard == null) {
                 title: 'Practice',
                 subtitle: 'AI Quiz',
                 color: AppColors.success,
+                onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const StudyScreen(
+          sessionId: "",
+          mode: StudyMode.quiz,
+        ),
+      ),
+    );
+  },
               ),
             ),
             SizedBox(width: AppSpacing.sm),
@@ -336,6 +385,17 @@ if (dashboard == null) {
                 title: 'Revise',
                 subtitle: 'Flashcards',
                 color: AppColors.warning,
+                onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const StudyScreen(
+          sessionId: "",
+          mode: StudyMode.flashcards,
+        ),
+      ),
+    );
+  },
               ),
             ),
           ]),
@@ -345,15 +405,23 @@ if (dashboard == null) {
             title: 'Library',
             subtitle: 'Your PDFs & Notes',
             color: AppColors.primary,
+            onTap: () {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => LibraryScreen(),
+    ),
+  );
+}
           ),
         ],
       ),
     );
   }
 
-  Widget _largeAction({required IconData icon, required String title, required String subtitle, required Color color}) {
+  Widget _largeAction({required IconData icon, required String title, required String subtitle, required Color color, required VoidCallback onTap}) {
     return InkWell(
-      onTap: () {},
+        onTap: onTap,
       borderRadius: BorderRadius.circular(AppRadius.medium),
       child: Ink(
         padding: EdgeInsets.all(AppSpacing.md),
@@ -398,9 +466,9 @@ if (dashboard == null) {
     );
   }
 
-  Widget _smallAction({required IconData icon, required String title, required String subtitle, required Color color}) {
+  Widget _smallAction({required IconData icon, required String title, required String subtitle, required Color color, required VoidCallback onTap}) {
     return InkWell(
-      onTap: () {},
+      onTap: onTap,
       borderRadius: BorderRadius.circular(AppRadius.medium),
       child: Ink(
         padding: EdgeInsets.all(AppSpacing.md),
@@ -483,7 +551,18 @@ else
   ...sessions.map((session) => Padding(
             padding: EdgeInsets.only(bottom: AppSpacing.sm),
             child: InkWell(
-              onTap: () {},
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => StudyScreen(
+          sessionId: session.id,
+          documentName: session.documentName,
+        ),
+      ),
+    );
+  },
+              
               borderRadius: BorderRadius.circular(AppRadius.medium),
               child: Ink(
                 padding: EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
@@ -505,7 +584,7 @@ else
                   Expanded(
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       Text(
-                        session.documentName ?? "Untitled Session",
+                        session.title ?? "Untitled Session",
                         style: GoogleFonts.inter(
                           color: AppColors.textPrimary,
                           fontSize: 14,
@@ -514,7 +593,7 @@ else
                       ),
                       SizedBox(height: AppSpacing.xs),
                       Text(
-                        session.createdAt.toString(),
+                        formatDate(session.createdAt),
                         style: GoogleFonts.inter(
                           color: AppColors.textSecondary,
                           fontSize: 12,

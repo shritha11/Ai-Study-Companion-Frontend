@@ -26,11 +26,13 @@ class DashboardStats {
 class ContinueLearning {
   final String id;
   final String? documentName;
+  final String? title;
   final DateTime createdAt;
 
   ContinueLearning({
     required this.id,
     this.documentName,
+    this.title,
     required this.createdAt,
   });
 
@@ -38,6 +40,7 @@ class ContinueLearning {
     return ContinueLearning(
       id: json["id"],
       documentName: json["document_name"],
+      title: json["title"],
       createdAt: DateTime.parse(json["created_at"]),
     );
   }
@@ -47,17 +50,20 @@ class RecentSession {
   final String id;
   final String? documentName;
   final DateTime createdAt;
+  final String? title;
 
   RecentSession({
     required this.id,
     this.documentName,
     required this.createdAt,
+    this.title,
   });
 
   factory RecentSession.fromJson(Map<String, dynamic> json) {
     return RecentSession(
       id: json["id"],
       documentName: json["document_name"],
+      title: json["title"],
       createdAt: DateTime.parse(json["created_at"]),
     );
   }

@@ -12,17 +12,20 @@ import '../models/study_item.dart';
 import '../widgets/quiz_widget.dart';
 import '../widgets/flashcards_widget.dart';
 import '../widgets/summary_widget.dart';
+import '../models/study_mode.dart';
 
 class StudyScreen extends StatefulWidget {
   final String sessionId;
   final String? documentName;
   final String? pdfName;
+  final StudyMode mode;
 
   const StudyScreen({
     super.key, 
     required this.sessionId,
     this.documentName, 
     this.pdfName, 
+    this.mode = StudyMode.learn,
   });
 
   @override
@@ -45,7 +48,9 @@ class _StudyScreenState extends State<StudyScreen> {
     _documentName = widget.documentName;
     _pdfName = widget.pdfName;
 
-    _initializeSession();
+    if (_sessionId.isNotEmpty) {
+      _loadMessages();
+    }
     }
 
   @override
@@ -55,18 +60,18 @@ class _StudyScreenState extends State<StudyScreen> {
     super.dispose();
   }
 
-  Future<void> _initializeSession() async {
-    if (_sessionId.isNotEmpty) {
-      await _loadMessages();
-      return;
-    }
+  // Future<void> _initializeSession() async {
+  //   if (_sessionId.isNotEmpty) {
+  //     await _loadMessages();
+  //     return;
+  //   }
 
-    final session = await ApiService.createSession(
-      _documentName,
-    );
+  //   final session = await ApiService.createSession(
+  //     _documentName,
+  //   );
 
-    _sessionId = session.id;
-  }
+  //   _sessionId = session.id;
+  // }
 
   void _scrollBottom() {
     Future.delayed(const Duration(milliseconds: 120), () {
@@ -83,7 +88,41 @@ class _StudyScreenState extends State<StudyScreen> {
   Future<void> _send(String text) async {
     final msg = text.trim();
     if (msg.isEmpty) return;
+    if (_sessionId.isEmpty) {
+      final session = await ApiService.createSession(_documentName);
+      _sessionId = session.id;
+    }
     _controller.clear();
+
+    // Quiz mode
+if (widget.mode == StudyMode.quiz) {
+  setState(() {
+    _timeline.add(
+      StudyItem.quiz(
+        topic: msg,
+        documentName: _documentName,
+      ),
+    );
+  });
+
+  _scrollBottom();
+  return;
+}
+
+// Flashcards mode
+if (widget.mode == StudyMode.flashcards) {
+  setState(() {
+    _timeline.add(
+      StudyItem.flashcards(
+        topic: msg,
+        documentName: _documentName,
+      ),
+    );
+  });
+
+  _scrollBottom();
+  return;
+}
 
     setState(() {
       _timeline.add(StudyItem.message(MessageModel(text: msg, isUser: true)));
@@ -215,7 +254,10 @@ class _StudyScreenState extends State<StudyScreen> {
           if (_pdfName != null) _pdfBanner(),
           Expanded(
             child: _timeline.isEmpty
-                ? EmptyState(onChipTap: _send)
+                ? EmptyState(
+                  mode: widget.mode,
+                  onChipTap: _send,
+                  )
                 : _buildTimeline(),
           ),
           if (_isTyping) const TypingIndicator(),
