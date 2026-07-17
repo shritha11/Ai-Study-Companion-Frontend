@@ -93,19 +93,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
 
     final stats = [
-      { 
-        "label": "Sessions",
-        "value": dashboard!.stats.sessions.toString(),
-      }, 
-      {
-        "label": "Quizzes",
-        "value": dashboard!.stats.quizzes.toString(),
-      },
-      {
-        "label": "Flashcards", 
-        "value": dashboard!.stats.flashcards.toString(),
-      },
-    ];
+  {
+    "label": "Streak",
+    "value": dashboard!.user.currentStreak.toString(),
+  },
+  {
+    "label": "Quizzes",
+    "value": dashboard!.stats.quizzes.toString(),
+  },
+  {
+    "label": "Flashcards",
+    "value": dashboard!.stats.flashcards.toString(),
+  },
+];
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(

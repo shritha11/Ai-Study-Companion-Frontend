@@ -149,6 +149,37 @@ if (dashboard == null) {
           ),
         ),
         SizedBox(height: AppSpacing.sm),
+        Container(
+  margin: const EdgeInsets.only(top: 12),
+  padding: const EdgeInsets.symmetric(
+    horizontal: 14,
+    vertical: 8,
+  ),
+  decoration: BoxDecoration(
+    color: Colors.orange.withOpacity(0.12),
+    borderRadius: BorderRadius.circular(30),
+    border: Border.all(
+      color: Colors.orange.withOpacity(0.4),
+    ),
+  ),
+  child: Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      const Text(
+        "🔥",
+        style: TextStyle(fontSize: 18),
+      ),
+      const SizedBox(width: 8),
+      Text(
+        "${dashboard.user.currentStreak} Day Streak",
+        style: GoogleFonts.inter(
+          color: Colors.orange.shade800,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    ],
+  ),
+),
         Text(
           'Continue your learning journey.',
           style: GoogleFonts.inter(
