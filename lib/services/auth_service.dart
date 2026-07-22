@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import '../models/auth_response.dart';
 
 class AuthService {
-    static const _base = "http://127.0.0.1:8000";
+    static const _base = "http://192.168.0.109:8000";
     static const storage = FlutterSecureStorage();
 
     static Future<AuthResponse> login({

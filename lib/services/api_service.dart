@@ -10,7 +10,7 @@ import 'auth_service.dart';
 import '../models/dashboard_model.dart';
 
 class ApiService {
-  static const _base = 'http://127.0.0.1:8000';
+  static const _base = 'http://192.168.0.109:8000';
 
   // Chat — plain question or with PDF context
   static Future<ChatResponse> chat(String message, {String? documentName, List<String>? documentNames, String? sessionId}) async {
@@ -149,6 +149,9 @@ static Future<UserModel> getCurrentUser() async {
     'pptx',
     'txt',
     'md',
+    "jpg",
+    "jpeg",
+    "png",
   ],
 );
     if (result == null) {

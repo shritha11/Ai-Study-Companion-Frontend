@@ -14,6 +14,7 @@ import '../widgets/flashcards_widget.dart';
 import '../widgets/summary_widget.dart';
 import '../models/study_mode.dart';
 import 'library_screen.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class StudyScreen extends StatefulWidget {
   final String sessionId;
@@ -44,10 +45,13 @@ class _StudyScreenState extends State<StudyScreen> {
   List<String> _documentNames = [];
   List<String> _pdfNames = [];
   late String _sessionId;
+  late stt.SpeechToText _speech;
+  bool _isListening = false;
 
   @override
   void initState() {
     super.initState();
+    _speech = stt.SpeechToText();
     _sessionId = widget.sessionId;
     _documentName = widget.documentName;
     _documentNames = [...?widget.documentNames];
@@ -118,6 +122,61 @@ class _StudyScreenState extends State<StudyScreen> {
       }
     });
   }
+
+  Future<void> _toggleListening() async {
+  print("MIC PRESSED");
+
+  if (!_isListening) {
+    bool available = await _speech.initialize(
+      onStatus: (status) {
+        print("STATUS: $status");
+      },
+      onError: (error) {
+        print("ERROR: ${error.errorMsg}");
+      },
+      debugLogging: true,
+    );
+
+    print("AVAILABLE: $available");
+
+    if (!available) return;
+
+    setState(() {
+      _isListening = true;
+    });
+
+    _speech.listen(
+      listenFor: const Duration(seconds: 30),
+      pauseFor: const Duration(seconds: 5),
+      partialResults: true,
+      localeId: "en_US",
+      onResult: (result) {
+        print("WORDS: ${result.recognizedWords}");
+
+        setState(() {
+          _controller.text = result.recognizedWords;
+          _controller.selection = TextSelection.fromPosition(
+            TextPosition(offset: _controller.text.length),
+          );
+        });
+
+        if (result.finalResult) {
+          _speech.stop();
+
+          setState(() {
+            _isListening = false;
+          });
+        }
+      },
+    );
+  } else {
+    await _speech.stop();
+
+    setState(() {
+      _isListening = false;
+    });
+  }
+}
 
   Future<void> _send(String text) async {
     final msg = text.trim();
@@ -338,6 +397,8 @@ if (widget.mode == StudyMode.flashcards) {
             controller: _controller,
             onSend: () => _send(_controller.text),
             onAttach: _showAttachmentOptions,
+            onMic: _toggleListening,
+            isListening: _isListening,
             hasPdf: _pdfNames.isNotEmpty,
           ),
         ],

@@ -4,6 +4,7 @@ import '../constants/app_colors.dart';
 import '../models/message_model.dart';
 import '../utils/learning_helper.dart';
 import 'learning_actions.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 
 class MessageBubble extends StatelessWidget {
   final MessageModel message;
@@ -69,26 +70,79 @@ class MessageBubble extends StatelessWidget {
             )),
       ]);
 
-  Widget _bubble() => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
-        decoration: BoxDecoration(
-          color: message.isUser ? AppColors.primary : AppColors.card,
-          borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(18),
-            topRight: const Radius.circular(18),
-            bottomLeft: Radius.circular(message.isUser ? 18 : 4),
-            bottomRight: Radius.circular(message.isUser ? 4 : 18),
-          ),
+Widget _bubble() => Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+      decoration: BoxDecoration(
+        color: message.isUser ? AppColors.primary : AppColors.card,
+        borderRadius: BorderRadius.only(
+          topLeft: const Radius.circular(18),
+          topRight: const Radius.circular(18),
+          bottomLeft: Radius.circular(message.isUser ? 18 : 4),
+          bottomRight: Radius.circular(message.isUser ? 4 : 18),
         ),
-        child: Text(
-          message.text,
-          style: TextStyle(
-            color: message.isUser ? Colors.white : AppColors.textPrimary,
-            fontSize: 15,
-            height: 1.6,
-          ),
-        ),
-      );
+      ),
+      child: message.isUser
+          ? Text(
+              message.text,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 15,
+                height: 1.6,
+              ),
+            )
+          : MarkdownBody(
+              data: message.text,
+              selectable: true,
+              styleSheet: MarkdownStyleSheet(
+                p: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 15,
+                  height: 1.6,
+                ),
+                h1: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+                h2: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+                h3: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+                strong: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+                em: const TextStyle(
+                  fontStyle: FontStyle.italic,
+                  color: AppColors.textPrimary,
+                ),
+                blockquote: const TextStyle(
+                  color: AppColors.textMuted,
+                  fontStyle: FontStyle.italic,
+                ),
+                code: const TextStyle(
+                  fontFamily: 'monospace',
+                  color: AppColors.primary,
+                ),
+                codeblockDecoration: BoxDecoration(
+                  color: Colors.black26,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                listBullet: const TextStyle(
+                  color: AppColors.primary,
+                ),
+                tableBorder: TableBorder.all(
+                  color: AppColors.border,
+                ),
+              ),
+            ),
+    );
 
   Widget _actions(BuildContext context) => Row(children: [
         _iconBtn(Icons.copy_rounded, () {

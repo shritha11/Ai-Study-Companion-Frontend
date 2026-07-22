@@ -66,5 +66,10 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSSpeechRecognitionUsageDescription</key>
+    <string>This app uses speech recognition to let you chat with AI.</string>
+
+    <key>NSMicrophoneUsageDescription</key>
+    <string>This app uses the microphone for voice input.</string>
 </dict>
 </plist>

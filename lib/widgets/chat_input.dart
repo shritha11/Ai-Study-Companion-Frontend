@@ -5,6 +5,8 @@ class ChatInput extends StatefulWidget {
   final TextEditingController controller;
   final VoidCallback onSend;
   final VoidCallback onAttach;
+  final VoidCallback onMic;
+  final bool isListening;
   final bool hasPdf;
 
   const ChatInput({
@@ -12,6 +14,8 @@ class ChatInput extends StatefulWidget {
     required this.controller,
     required this.onSend,
     required this.onAttach,
+    required this.onMic,
+    required this.isListening,
     this.hasPdf = false,
   });
 
@@ -85,24 +89,93 @@ class _ChatInputState extends State<ChatInput> {
             ),
           ),
           const SizedBox(width: 8),
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 180),
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: _hasText ? AppColors.primary : AppColors.card,
-              borderRadius: BorderRadius.circular(13),
-              border: Border.all(
-                  color: _hasText ? AppColors.primary : AppColors.border),
-            ),
-            child: IconButton(
-              padding: EdgeInsets.zero,
-              onPressed: _hasText ? widget.onSend : null,
-              icon: Icon(Icons.arrow_upward_rounded,
-                  color: _hasText ? Colors.white : AppColors.textMuted,
-                  size: 18),
-            ),
-          ),
+          Container(
+  width: 42,
+  height: 42,
+  decoration: BoxDecoration(
+    color: widget.isListening
+        ? Colors.red
+        : AppColors.card,
+    borderRadius: BorderRadius.circular(13),
+    border: Border.all(
+      color: widget.isListening
+          ? Colors.red
+          : AppColors.border,
+    ),
+  ),
+  child: IconButton(
+    padding: EdgeInsets.zero,
+    onPressed: widget.onMic,
+    icon: Icon(
+      widget.isListening
+          ? Icons.mic
+          : Icons.mic_none,
+      color: widget.isListening
+          ? Colors.white
+          : AppColors.textMuted,
+      size: 18,
+    ),
+  ),
+),
+const SizedBox(width: 8),
+Container(
+  width: 42,
+  height: 42,
+  decoration: BoxDecoration(
+    color: widget.isListening
+        ? Colors.red
+        : AppColors.card,
+    borderRadius: BorderRadius.circular(13),
+    border: Border.all(
+      color: widget.isListening
+          ? Colors.red
+          : AppColors.border,
+    ),
+  ),
+  child: IconButton(
+    padding: EdgeInsets.zero,
+    onPressed: widget.onMic,
+    icon: Icon(
+      widget.isListening
+          ? Icons.mic
+          : Icons.mic_none,
+      color: widget.isListening
+          ? Colors.white
+          : AppColors.textMuted,
+      size: 18,
+    ),
+  ),
+),
+
+const SizedBox(width: 8),
+
+AnimatedContainer(
+  duration: const Duration(milliseconds: 180),
+  width: 42,
+  height: 42,
+  decoration: BoxDecoration(
+    color: _hasText
+        ? AppColors.primary
+        : AppColors.card,
+    borderRadius: BorderRadius.circular(13),
+    border: Border.all(
+      color: _hasText
+          ? AppColors.primary
+          : AppColors.border,
+    ),
+  ),
+  child: IconButton(
+    padding: EdgeInsets.zero,
+    onPressed: _hasText ? widget.onSend : null,
+    icon: Icon(
+      Icons.arrow_upward_rounded,
+      color: _hasText
+          ? Colors.white
+          : AppColors.textMuted,
+      size: 18,
+    ),
+  ),
+),
         ],
       ),
     );
