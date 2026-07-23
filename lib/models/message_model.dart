@@ -1,10 +1,20 @@
 class MessageModel {
   final String text;
   final bool isUser;
+  final bool isVoice;
+  final String? audioPath;
+
   final String? learningTitle;
   final List<String>? actions;
 
-  MessageModel({required this.text, required this.isUser, this.learningTitle, this.actions});
+  MessageModel({
+    required this.text, 
+    required this.isUser, 
+    this.learningTitle, 
+    this.actions,
+    this.isVoice = false,
+    this.audioPath,
+    });
 }
 
 class QuizQuestion {

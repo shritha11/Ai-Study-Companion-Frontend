@@ -14,7 +14,8 @@ import '../widgets/flashcards_widget.dart';
 import '../widgets/summary_widget.dart';
 import '../models/study_mode.dart';
 import 'library_screen.dart';
-import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'package:record/record.dart';
+import 'package:path_provider/path_provider.dart';
 
 class StudyScreen extends StatefulWidget {
   final String sessionId;
@@ -45,13 +46,13 @@ class _StudyScreenState extends State<StudyScreen> {
   List<String> _documentNames = [];
   List<String> _pdfNames = [];
   late String _sessionId;
-  late stt.SpeechToText _speech;
+  final AudioRecorder _recorder = AudioRecorder();
   bool _isListening = false;
+  String? _audioPath;
 
   @override
   void initState() {
     super.initState();
-    _speech = stt.SpeechToText();
     _sessionId = widget.sessionId;
     _documentName = widget.documentName;
     _documentNames = [...?widget.documentNames];
@@ -122,60 +123,83 @@ class _StudyScreenState extends State<StudyScreen> {
       }
     });
   }
+ 
+ Future<void> _startRecording() async {
+  if (!await _recorder.hasPermission()) {
+    return;
+  }
+  final dir = await getTemporaryDirectory();
+  _audioPath =
+      "${dir.path}/${DateTime.now().millisecondsSinceEpoch}.m4a";
 
-  Future<void> _toggleListening() async {
-  print("MIC PRESSED");
+  await _recorder.start(
+    const RecordConfig(),
+    path: _audioPath!,
+  );
+  setState(() {
+    _isListening = true;
+  });
+  print("Recording started");
+}
 
-  if (!_isListening) {
-    bool available = await _speech.initialize(
-      onStatus: (status) {
-        print("STATUS: $status");
-      },
-      onError: (error) {
-        print("ERROR: ${error.errorMsg}");
-      },
-      debugLogging: true,
+Future<void> _stopRecording() async {
+  final path = await _recorder.stop();
+
+  setState(() {
+    _isListening = false;
+  });
+
+  if (path == null) return;
+
+  // Show user's voice bubble
+  setState(() {
+    _timeline.add(
+      StudyItem.message(
+        MessageModel(
+          text: "",
+          isUser: true,
+          isVoice: true,
+          audioPath: path,
+        ),
+      ),
     );
 
-    print("AVAILABLE: $available");
+    _isTyping = true;
+  });
 
-    if (!available) return;
+  _scrollBottom();
+
+  try {
+    final result = await ApiService.uploadVoice(path);
 
     setState(() {
-      _isListening = true;
+      _timeline.add(
+        StudyItem.message(
+          MessageModel(
+            text: result["response"],
+            isUser: false,
+          ),
+        ),
+      );
+
+      _isTyping = false;
     });
-
-    _speech.listen(
-      listenFor: const Duration(seconds: 30),
-      pauseFor: const Duration(seconds: 5),
-      partialResults: true,
-      localeId: "en_US",
-      onResult: (result) {
-        print("WORDS: ${result.recognizedWords}");
-
-        setState(() {
-          _controller.text = result.recognizedWords;
-          _controller.selection = TextSelection.fromPosition(
-            TextPosition(offset: _controller.text.length),
-          );
-        });
-
-        if (result.finalResult) {
-          _speech.stop();
-
-          setState(() {
-            _isListening = false;
-          });
-        }
-      },
-    );
-  } else {
-    await _speech.stop();
-
+  } catch (e) {
     setState(() {
-      _isListening = false;
+      _timeline.add(
+        StudyItem.message(
+          MessageModel(
+            text: "Voice processing failed.",
+            isUser: false,
+          ),
+        ),
+      );
+
+      _isTyping = false;
     });
   }
+
+  _scrollBottom();
 }
 
   Future<void> _send(String text) async {
@@ -397,7 +421,8 @@ if (widget.mode == StudyMode.flashcards) {
             controller: _controller,
             onSend: () => _send(_controller.text),
             onAttach: _showAttachmentOptions,
-            onMic: _toggleListening,
+            onStartRecording: _startRecording,
+            onStopRecording: _stopRecording,
             isListening: _isListening,
             hasPdf: _pdfNames.isNotEmpty,
           ),

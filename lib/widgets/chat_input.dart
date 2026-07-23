@@ -5,7 +5,8 @@ class ChatInput extends StatefulWidget {
   final TextEditingController controller;
   final VoidCallback onSend;
   final VoidCallback onAttach;
-  final VoidCallback onMic;
+  final VoidCallback onStartRecording;
+  final VoidCallback onStopRecording;
   final bool isListening;
   final bool hasPdf;
 
@@ -14,7 +15,8 @@ class ChatInput extends StatefulWidget {
     required this.controller,
     required this.onSend,
     required this.onAttach,
-    required this.onMic,
+    required this.onStartRecording,
+    required this.onStopRecording,
     required this.isListening,
     this.hasPdf = false,
   });
@@ -103,19 +105,33 @@ class _ChatInputState extends State<ChatInput> {
           : AppColors.border,
     ),
   ),
-  child: IconButton(
-    padding: EdgeInsets.zero,
-    onPressed: widget.onMic,
-    icon: Icon(
+  child: GestureDetector(
+  onLongPressStart: (_) => widget.onStartRecording(),
+  onLongPressEnd: (_) => widget.onStopRecording(),
+  child: Container(
+    width: 42,
+    height: 42,
+    decoration: BoxDecoration(
+      color: widget.isListening
+          ? Colors.red
+          : AppColors.card,
+      borderRadius: BorderRadius.circular(13),
+      border: Border.all(
+        color: widget.isListening
+            ? Colors.red
+            : AppColors.border,
+      ),
+    ),
+    child: Icon(
       widget.isListening
           ? Icons.mic
           : Icons.mic_none,
       color: widget.isListening
           ? Colors.white
           : AppColors.textMuted,
-      size: 18,
     ),
   ),
+),
 ),
 const SizedBox(width: 8),
 Container(
@@ -130,19 +146,6 @@ Container(
       color: widget.isListening
           ? Colors.red
           : AppColors.border,
-    ),
-  ),
-  child: IconButton(
-    padding: EdgeInsets.zero,
-    onPressed: widget.onMic,
-    icon: Icon(
-      widget.isListening
-          ? Icons.mic
-          : Icons.mic_none,
-      color: widget.isListening
-          ? Colors.white
-          : AppColors.textMuted,
-      size: 18,
     ),
   ),
 ),

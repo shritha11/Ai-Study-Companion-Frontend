@@ -5,8 +5,9 @@ import '../models/message_model.dart';
 import '../utils/learning_helper.dart';
 import 'learning_actions.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:audioplayers/audioplayers.dart';
 
-class MessageBubble extends StatelessWidget {
+class MessageBubble extends StatefulWidget {
   final MessageModel message;
   final String? documentName;
   final String sessionId;
@@ -18,32 +19,73 @@ class MessageBubble extends StatelessWidget {
     required this.sessionId,
   });
 
+   @override
+  State<MessageBubble> createState() => _MessageBubbleState();
+}
+
+class _MessageBubbleState extends State<MessageBubble> {
+  final AudioPlayer _player = AudioPlayer();
+
+  bool _isPlaying = false;
+
+  Duration _position = Duration.zero;
+  Duration _duration = Duration.zero;
+
+    @override
+  void initState() {
+    super.initState();
+
+    _player.onPlayerStateChanged.listen((state) {
+      setState(() {
+        _isPlaying = state == PlayerState.playing;
+      });
+    });
+
+    _player.onPositionChanged.listen((position) {
+      setState(() {
+        _position = position;
+      });
+    });
+
+    _player.onDurationChanged.listen((duration) {
+      setState(() {
+        _duration = duration;
+      });
+    });
+  }
+
+    @override
+  void dispose() {
+    _player.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.fromLTRB(
-        message.isUser ? 56 : 16,
+        widget.message.isUser ? 56 : 16,
         4,
-        message.isUser ? 16 : 56,
+        widget.message.isUser ? 16 : 56,
         4,
       ),
       child: Column(
         crossAxisAlignment:
-            message.isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+            widget.message.isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
-          if (!message.isUser) _aiHeader(),
-          if (!message.isUser) const SizedBox(height: 7),
-          _bubble(),
-          if (!message.isUser) ...[
+          if (!widget.message.isUser) _aiHeader(),
+          if (!widget.message.isUser) const SizedBox(height: 7),
+          widget.message.isVoice ? _voiceBubble() : _bubble(),
+          if (!widget.message.isUser) ...[
             const SizedBox(height: 10),
             _actions(context),
-            if (message.learningTitle != null) ...[
+            if (widget.message.learningTitle != null) ...[
               const SizedBox(height: 16),
               LearningActions(
-                title: message.learningTitle!,
-                topic: LearningHelper.extractTopic(message.text),
-                documentName: documentName,
-                sessionId: sessionId,
+                title: widget.message.learningTitle!,
+                topic: LearningHelper.extractTopic(widget.message.text),
+                documentName: widget.documentName,
+                sessionId: widget.sessionId,
               ),
             ],
           ],
@@ -73,17 +115,17 @@ class MessageBubble extends StatelessWidget {
 Widget _bubble() => Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
       decoration: BoxDecoration(
-        color: message.isUser ? AppColors.primary : AppColors.card,
+        color: widget.message.isUser ? AppColors.primary : AppColors.card,
         borderRadius: BorderRadius.only(
           topLeft: const Radius.circular(18),
           topRight: const Radius.circular(18),
-          bottomLeft: Radius.circular(message.isUser ? 18 : 4),
-          bottomRight: Radius.circular(message.isUser ? 4 : 18),
+          bottomLeft: Radius.circular(widget.message.isUser ? 18 : 4),
+          bottomRight: Radius.circular(widget.message.isUser ? 4 : 18),
         ),
       ),
-      child: message.isUser
+      child: widget.message.isUser
           ? Text(
-              message.text,
+              widget.message.text,
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 15,
@@ -91,7 +133,7 @@ Widget _bubble() => Container(
               ),
             )
           : MarkdownBody(
-              data: message.text,
+              data: widget.message.text,
               selectable: true,
               styleSheet: MarkdownStyleSheet(
                 p: const TextStyle(
@@ -144,9 +186,72 @@ Widget _bubble() => Container(
             ),
     );
 
+Widget _voiceBubble() {
+  return Container(
+    width: 230,
+    padding: const EdgeInsets.all(14),
+    decoration: BoxDecoration(
+      color: widget.message.isUser
+          ? AppColors.primary
+          : AppColors.card,
+      borderRadius: BorderRadius.only(
+        topLeft: const Radius.circular(18),
+        topRight: const Radius.circular(18),
+        bottomLeft: Radius.circular(widget.message.isUser ? 18 : 4),
+        bottomRight: Radius.circular(widget.message.isUser ? 4 : 18),
+      ),
+    ),
+    child: Row(
+      children: [
+        GestureDetector(
+  onTap: () async {
+    if (widget.message.audioPath == null) return;
+
+    if (_isPlaying) {
+      await _player.pause();
+    } else {
+      await _player.play(
+        DeviceFileSource(widget.message.audioPath!),
+      );
+    }
+  },
+  child: Icon( _isPlaying
+    ? Icons.pause_rounded
+    : Icons.play_arrow_rounded,
+  color: Colors.white,
+  size: 28,
+  ),
+),
+        const SizedBox(width: 10),
+
+        Expanded(
+  child: LinearProgressIndicator(
+    value: _duration.inMilliseconds == 0
+        ? 0
+        : _position.inMilliseconds / _duration.inMilliseconds,
+    minHeight: 3,
+    backgroundColor: Colors.white24,
+    valueColor: const AlwaysStoppedAnimation(Colors.white),
+  ),
+),
+
+        const SizedBox(width: 10),
+
+        Text(
+  "${_position.inMinutes}:${(_position.inSeconds % 60).toString().padLeft(2, '0')}",
+  style: const TextStyle(
+    color: Colors.white,
+    fontSize: 12,
+  ),
+)
+      ],
+    ),
+  );
+}
+
   Widget _actions(BuildContext context) => Row(children: [
         _iconBtn(Icons.copy_rounded, () {
-          Clipboard.setData(ClipboardData(text: message.text));
+          Clipboard.setData(ClipboardData(text: widget.message.text));
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
             content: Text('Copied'),
             duration: Duration(seconds: 1),

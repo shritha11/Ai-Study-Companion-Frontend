@@ -8,6 +8,7 @@ import '../models/user_model.dart';
 import 'package:file_picker/file_picker.dart';
 import 'auth_service.dart';
 import '../models/dashboard_model.dart';
+import 'dart:io';
 
 class ApiService {
   static const _base = 'http://192.168.0.109:8000';
@@ -123,6 +124,33 @@ class ApiService {
   if (response.statusCode != 200) {
     throw Exception("Rename failed");
   }
+}
+
+static Future<Map<String, dynamic>> uploadVoice(String path) async {
+  final request = http.MultipartRequest(
+    "POST",
+    Uri.parse("$_base/voice"),
+  );
+
+  request.headers.addAll(
+    await AuthService.authHeaders(),
+  );
+
+  request.files.add(
+    await http.MultipartFile.fromPath(
+      "file",
+      path,
+    ),
+  );
+
+  final streamed = await request.send();
+  final response = await http.Response.fromStream(streamed);
+
+  if (response.statusCode != 200) {
+    throw Exception("Voice upload failed");
+  }
+
+  return jsonDecode(response.body);
 }
 
 static Future<UserModel> getCurrentUser() async {
